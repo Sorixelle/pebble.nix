@@ -1,0 +1,34 @@
+The Pebble tool was initially written with an older version of virtualenv in
+mind (13.1.0), which had a --no-site-packages flag. In more recent versions of
+virtualenv, this flag has been removed and made default behaviour. We'll just
+remove this flag from invocations of virtualenv, so that they work again.
+
+Also, in a similar vein to exec-phonesim.patch, the tool tries to call
+virtualenv as a module, which won't fly under Nix. Luckily, Nix adds the
+virtualenv command to PATH for us, so we can just execute that instead.
+
+There's a currently open PR on the pebble-tool repo to fix this [1]. Once (if?)
+it gets merged, we can remove the --no-site-packages part of this patch.
+
+[1]: https://github.com/pebble-dev/pebble-tool/pull/1
+
+--- a/pebble_tool/sdk/manager.py
++++ b/pebble_tool/sdk/manager.py
+@@ -114,7 +114,7 @@
+                 t.extractall(path)
+             virtualenv_path = os.path.join(path, ".env")
+             print("Preparing virtualenv... (this may take a while)")
+-            subprocess.check_call([sys.executable, "-m", "virtualenv", virtualenv_path, "--no-site-packages"])
++            subprocess.check_call(["virtualenv", virtualenv_path])
+             print("Installing dependencies...")
+             subprocess.check_call([os.path.join(virtualenv_path, "bin", "python"), "-m", "pip", "install", "-r",
+                                    os.path.join(path, "sdk-core", "requirements.txt")],
+@@ -253,7 +253,7 @@
+             }, f)
+
+         print("Preparing virtualenv... (this may take a while)")
+-        subprocess.check_call([sys.executable, "-m", "virtualenv", env_path, "--no-site-packages"])
++        subprocess.check_call(["virtualenv", env_path])
+         print("Installing dependencies...")
+         print("This may fail installing Pillow==2.0.0. In that case, question why we still force 2.0.0 anyway.")
+         if sys.platform.startswith('darwin'):
