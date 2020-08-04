@@ -58,5 +58,7 @@ following arguments to the dev shell:
 
 ## Future plans
 
+- Get CI + Cachix going so users don't need to compile an ARM toolchain and
+  QEMU; just pull straight from the binary cache instead
 - Building "Rebble App Store ready" tarballs containing everything needed for
   publishing according to the [Rebble wiki](https://github.com/pebble-dev/wiki/wiki/Preparing-a-new-app-for-the-Rebble-App-Store)
