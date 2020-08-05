@@ -17,7 +17,7 @@
           pebble = self.packages.${system};
         };
 
-        packages.${system} = {
+        packages = {
           pebble-qemu = pkgs.callPackage ./derivations/pebble-qemu { };
           pebble-tool = pkgs.callPackage ./derivations/pebble-tool { };
         };

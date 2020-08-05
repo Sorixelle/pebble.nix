@@ -22,7 +22,7 @@ in pkgs.callPackage ({ gcc8Stdenv, nodejs }:
     name = "pebble-dev-shell";
     phases = [ "nophase" ];
 
-    nativeBuildInputs = with pebble.${system}; [ nodejs pebble-qemu pebble-tool ]
+    nativeBuildInputs = with pebble; [ nodejs pebble-qemu pebble-tool ]
       ++ nativeBuildInputs;
 
     PEBBLE_PHONE = devServerIP;
