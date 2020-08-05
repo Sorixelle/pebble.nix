@@ -12,7 +12,7 @@
     (system:
       let pkgs = import nixpkgs { inherit system; };
       in {
-        devShell = builtins.trace flake-utils import ./derivations/dev-shell.nix {
+        devShell = import ./derivations/dev-shell.nix {
           inherit nixpkgs system;
           pebble = self.packages.${system};
         };
