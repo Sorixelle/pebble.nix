@@ -9,7 +9,7 @@ Add the following to a `shell.nix` file, then use `nix-shell`:
 ```nix
 (import
   (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archives/master.tar.gz)
-).shellNix.default { }
+).devShell { }
 ```
 
 Or, if using Nix flakes + `nix develop`:
