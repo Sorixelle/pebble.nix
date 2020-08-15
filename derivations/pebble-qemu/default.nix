@@ -1,7 +1,18 @@
-{ stdenv, lib, fetchFromGitHub, autoconf, automake, glib, libtool, perl, pixman
+{ stdenv, lib, fetchFromGitHub, autoconf, automake, darwin, glib, libtool, perl, pixman
 , pkgconfig, python2, SDL2, zlib }:
 
-stdenv.mkDerivation rec {
+let
+  darwinDeps = lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; with darwin.stubs; [
+    CoreAudio
+    IOKit
+    rez
+    setfile
+  ]);
+
+  linuxPatches = lib.optionals (!stdenv.isDarwin) [
+    ./undefined-reference-major.patch
+  ];
+in stdenv.mkDerivation rec {
   name = "pebble-qemu";
   version = "2.5.0-pebble4";
 
@@ -15,15 +26,16 @@ stdenv.mkDerivation rec {
 
   nativeBuildInputs = [ autoconf automake libtool perl pkgconfig python2 ];
 
-  buildInputs = [ glib pixman SDL2 zlib ];
+  buildInputs = [ glib pixman SDL2 zlib ] ++ darwinDeps;
 
-  patches = [ ./memfd-fix.patch ./undefined-reference-major.patch ];
+  patches = [ ./memfd-fix.patch ] ++ linuxPatches;
 
   configureFlags = [
     "--with-coroutine=gthread"
     "--disable-werror"
     "--disable-mouse"
     "--disable-vnc"
+    "--disable-cocoa"
     "--enable-debug"
     "--enable-sdl"
     "--with-sdlabi=2.0"

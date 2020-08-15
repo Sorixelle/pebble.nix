@@ -4,7 +4,20 @@ Tools for building Pebble apps on Nix systems
 
 ## Quickstart
 
-Add the following to a `shell.nix` file, then use `nix-shell`:
+**Recommended:** Install [Cachix](https://cachix.org/) and use the `pebble`
+cache. Using Cachix is highly recommended, as building some required derivations
+(qemu-pebble, the ARM toolchain) locally can take a long time. Cachix provides
+prebuilt, binary backages so you don't have to do the building.
+
+Cachix is avaliable in Nixpkgs under the attribute `cachix`. Install it by
+adding it to your NixOS configuration, or with `nix-env`. Then, run this command
+to use the pebble.nix cache:
+
+```shell
+cachix use pebble
+```
+
+To use pebble.nix, add the following to a `shell.nix` file, then use `nix-shell`:
 
 ```nix
 (import
@@ -58,7 +71,5 @@ following arguments to the dev shell:
 
 ## Future plans
 
-- Get CI + Cachix going so users don't need to compile an ARM toolchain and
-  QEMU; just pull straight from the binary cache instead
 - Building "Rebble App Store ready" tarballs containing everything needed for
   publishing according to the [Rebble wiki](https://github.com/pebble-dev/wiki/wiki/Preparing-a-new-app-for-the-Rebble-App-Store)

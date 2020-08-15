@@ -5,6 +5,11 @@ let
       sha256 = "071aal00zp2m9knnhddgr2wqzlx6i6qa1263lv1y7bdn2w20h10h"; }) {
         src = ./.;
   });
+
+  system = builtins.currentSystem;
+  packages = flake.defaultNix.outputs.packages.${system};
 in {
   devShell = flake.shellNix.default;
+
+  inherit (packages) pebble-tool pebble-qemu;
 }
