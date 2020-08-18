@@ -1,17 +1,17 @@
-{ stdenv, lib, fetchFromGitHub, autoconf, automake, darwin, glib, libtool, perl, pixman
-, pkgconfig, python2, SDL2, zlib }:
+{ stdenv, lib, fetchFromGitHub, autoconf, automake, darwin, glib, libtool, perl
+, pixman, pkgconfig, python2, SDL2, zlib }:
 
 let
-  darwinDeps = lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks; with darwin.stubs; [
-    CoreAudio
-    IOKit
-    rez
-    setfile
-  ]);
+  darwinDeps = lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks;
+    with darwin.stubs; [
+      CoreAudio
+      IOKit
+      rez
+      setfile
+    ]);
 
-  linuxPatches = lib.optionals (!stdenv.isDarwin) [
-    ./undefined-reference-major.patch
-  ];
+  linuxPatches =
+    lib.optionals (!stdenv.isDarwin) [ ./undefined-reference-major.patch ];
 in stdenv.mkDerivation rec {
   name = "pebble-qemu";
   version = "2.5.0-pebble4";

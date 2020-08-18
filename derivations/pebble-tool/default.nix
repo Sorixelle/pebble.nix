@@ -3,7 +3,8 @@
 
 let
   pythonLibs = import ./python-libs.nix {
-    inherit fetchFromGitHub fetchurl lib makeWrapper python2Packages pyv8 stdenv;
+    inherit fetchFromGitHub fetchurl lib makeWrapper python2Packages pyv8
+      stdenv;
   };
 
   rpath = lib.makeLibraryPath [ freetype stdenv.cc.cc.lib zlib ];
