@@ -9,10 +9,15 @@ cache. Using Cachix is highly recommended, as building some required derivations
 (qemu-pebble, the ARM toolchain) locally can take a long time. Cachix provides
 prebuilt, binary backages so you don't have to do the building.
 
-Cachix is avaliable in Nixpkgs under the attribute `cachix`. Install it by
-adding it to your NixOS configuration, or with `nix-env`. Then, run this command
-to use the pebble.nix cache:
+On non-NixOS systems:
+```shell
+nix-env -i cachix
+```
 
+On NixOS, add `cachix` to `environment.systemPackages` in your configuration.
+
+Finally, to use the pebble.nix cache (you might need to run this command with
+`sudo` if your user isn't a trusted user in the Nix daemon):
 ```shell
 cachix use pebble
 ```
@@ -21,7 +26,7 @@ To use pebble.nix, add the following to a `shell.nix` file, then use `nix-shell`
 
 ```nix
 (import
-  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archives/master.tar.gz)
+  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar.gz)
 ).devShell { }
 ```
 
@@ -46,7 +51,7 @@ specific commit.
 ```nix
 builtins.fetchTarball {
   # Get the desired commit hash at https://github.com/Sorixelle/pebble.nix/commits
-  url = https://github.com/Sorixelle/pebble.nix/archives/<commitHash>.tar.gz;
+  url = https://github.com/Sorixelle/pebble.nix/archive/<commitHash>.tar.gz;
   # Get the hash by running "nix-prefetch-url --unpack <url>" on the tarball url
   sha256 = "<tarballHash>";
 }
