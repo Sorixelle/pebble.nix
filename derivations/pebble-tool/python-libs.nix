@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchurl, fetchFromGitHub, makeWrapper, python2Packages }:
+{ stdenv, lib, fetchurl, fetchFromGitHub, makeWrapper, python2Packages, pyv8 }:
 
 with python2Packages; rec {
   gevent = buildPythonPackage rec {
@@ -82,6 +82,7 @@ with python2Packages; rec {
       peewee
       pygeoip
       pypng
+      pyv8
       dateutil
       requests
       sh
@@ -89,6 +90,8 @@ with python2Packages; rec {
       websocket_client
       wsgiref
     ];
+
+    patches = [ ./pypkjs-no-prebuilt-pyv8.patch ];
 
     prePatch = ''
       substituteInPlace requirements.txt --replace "==" ">="

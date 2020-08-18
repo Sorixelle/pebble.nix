@@ -1,0 +1,20 @@
+--- a/setup.py
++++ b/setup.py
+@@ -39,7 +39,7 @@
+ # please look in buildconf.py.example for more information
+ PYV8_HOME = os.path.abspath(os.path.dirname(__file__))
+ BOOST_HOME = None
+-BOOST_MT = is_osx
++BOOST_MT = False
+ BOOST_STATIC_LINK = False
+ PYTHON_HOME = None
+ V8_HOME = None
+@@ -138,7 +138,7 @@
+ if V8_DEBUGGER_SUPPORT:
+     macros += [("ENABLE_DEBUGGER_SUPPORT", None)]
+
+-boost_libs = ['boost_python', 'boost_thread', 'boost_system']
++boost_libs = ['boost_python27', 'boost_thread', 'boost_system']
+
+ if BOOST_MT:
+     boost_libs = [lib + '-mt' for lib in boost_libs]

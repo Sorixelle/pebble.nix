@@ -1,0 +1,22 @@
++++ a/v8-source/include/v8.h
+--- b/v8-source/include/v8.h
+@@ -828,6 +828,9 @@
+   V8_INLINE Isolate* GetIsolate() const {
+     return reinterpret_cast<Isolate*>(isolate_);
+   }
++
++  static internal::Object** CreateHandle(internal::Isolate* isolate,
++                                         internal::Object* value);
+
+  protected:
+   V8_INLINE HandleScope() {}
+@@ -833,9 +834,6 @@
+   V8_INLINE HandleScope() {}
+
+   void Initialize(Isolate* isolate);
+-
+-  static internal::Object** CreateHandle(internal::Isolate* isolate,
+-                                         internal::Object* value);
+
+  private:
+   // Uses heap_object to obtain the current Isolate.

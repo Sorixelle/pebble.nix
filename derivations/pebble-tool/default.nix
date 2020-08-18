@@ -1,9 +1,9 @@
 { stdenv, lib, autoPatchelfHook, fetchurl, fetchFromGitHub, makeWrapper
-, freetype, python2Packages, v8, zlib }:
+, freetype, python2Packages, pyv8, zlib }:
 
 let
   pythonLibs = import ./python-libs.nix {
-    inherit fetchFromGitHub fetchurl lib makeWrapper python2Packages stdenv;
+    inherit fetchFromGitHub fetchurl lib makeWrapper python2Packages pyv8 stdenv;
   };
 
   rpath = lib.makeLibraryPath [ freetype stdenv.cc.cc.lib zlib ];

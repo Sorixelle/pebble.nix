@@ -1,0 +1,171 @@
+diff --git a/pypkjs/javascript/console.py b/pypkjs/javascript/console.py
+index 31e6ae5..38a1b5a 100644
+--- a/pypkjs/javascript/console.py
++++ b/pypkjs/javascript/console.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+
+
+ class Console(object):
+diff --git a/pypkjs/javascript/events.py b/pypkjs/javascript/events.py
+index bdf4e96..e73054b 100644
+--- a/pypkjs/javascript/events.py
++++ b/pypkjs/javascript/events.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+
+ from .exceptions import JSRuntimeException
+
+diff --git a/pypkjs/javascript/exceptions.py b/pypkjs/javascript/exceptions.py
+index 798007f..3555f51 100644
+--- a/pypkjs/javascript/exceptions.py
++++ b/pypkjs/javascript/exceptions.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+
+
+ class JSRuntimeException(Exception):
+diff --git a/pypkjs/javascript/localstorage.py b/pypkjs/javascript/localstorage.py
+index 8b9426f..9467213 100644
+--- a/pypkjs/javascript/localstorage.py
++++ b/pypkjs/javascript/localstorage.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ import errno
+ import logging
+ import os
+diff --git a/pypkjs/javascript/navigator/__init__.py b/pypkjs/javascript/navigator/__init__.py
+index 83fb1a8..1d7d361 100644
+--- a/pypkjs/javascript/navigator/__init__.py
++++ b/pypkjs/javascript/navigator/__init__.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ from .geolocation import Geolocation
+
+
+diff --git a/pypkjs/javascript/navigator/geolocation.py b/pypkjs/javascript/navigator/geolocation.py
+index 522b244..c8acfa4 100644
+--- a/pypkjs/javascript/navigator/geolocation.py
++++ b/pypkjs/javascript/navigator/geolocation.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ import time
+ import requests
+ import pygeoip
+diff --git a/pypkjs/javascript/pebble.py b/pypkjs/javascript/pebble.py
+index 3893461..59063a1 100644
+--- a/pypkjs/javascript/pebble.py
++++ b/pypkjs/javascript/pebble.py
+@@ -14,7 +14,7 @@ import traceback
+ from uuid import UUID
+ import urllib
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ from libpebble2.protocol.appglance import AppGlance, AppGlanceSlice, AppGlanceSliceType
+ from libpebble2.protocol.appmessage import AppMessage
+ from libpebble2.protocol.blobdb import BlobDatabaseID, BlobStatus
+diff --git a/pypkjs/javascript/performance.py b/pypkjs/javascript/performance.py
+index 4ef627a..4e6924a 100644
+--- a/pypkjs/javascript/performance.py
++++ b/pypkjs/javascript/performance.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ import time
+
+
+diff --git a/pypkjs/javascript/runtime.py b/pypkjs/javascript/runtime.py
+index 90d15c1..ac967ce 100644
+--- a/pypkjs/javascript/runtime.py
++++ b/pypkjs/javascript/runtime.py
+@@ -1,7 +1,7 @@
+ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ import gevent
+ import gevent.pool
+ import gevent.queue
+diff --git a/pypkjs/javascript/timers.py b/pypkjs/javascript/timers.py
+index 00bf02d..657a17a 100644
+--- a/pypkjs/javascript/timers.py
++++ b/pypkjs/javascript/timers.py
+@@ -2,7 +2,7 @@ from __future__ import absolute_import
+ __author__ = 'katharine'
+
+ import gevent
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+
+ class Timers(object):
+     def __init__(self, runtime):
+diff --git a/pypkjs/javascript/ws.py b/pypkjs/javascript/ws.py
+index 67024a6..3812752 100644
+--- a/pypkjs/javascript/ws.py
++++ b/pypkjs/javascript/ws.py
+@@ -6,7 +6,7 @@ from gevent.greenlet import GreenletExit
+ import struct
+ import websocket
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ from .exceptions import JSRuntimeException
+ from . import events
+
+diff --git a/pypkjs/javascript/xhr.py b/pypkjs/javascript/xhr.py
+index 9788478..0c546ad 100644
+--- a/pypkjs/javascript/xhr.py
++++ b/pypkjs/javascript/xhr.py
+@@ -6,7 +6,7 @@ from gevent import monkey; monkey.patch_all()
+ import requests
+ import requests.exceptions
+
+-import pypkjs.PyV8 as v8
++import PyV8 as v8
+ from . import events
+ from .safe_requests import NonlocalHTTPAdapter
+ from .exceptions import JSRuntimeException
+diff --git a/setup.py b/setup.py
+index 61841b1..aa7df48 100644
+--- a/setup.py
++++ b/setup.py
+@@ -21,10 +21,6 @@ setup(name='pypkjs',
+       install_requires=requirements,
+       package_data={
+           'pypkjs.javascript.navigator': ['GeoLiteCity.dat'],
+-          'pypkjs.PyV8.darwin64': ['_PyV8.so'],
+-          'pypkjs.PyV8.linux32': ['_PyV8.so'],
+-          'pypkjs.PyV8.linux64': ['_PyV8.so', 'libboost_python.so.1.53.0', 'libboost_system-mt.so.1.53.0',
+-                           'libboost_thread-mt.so.1.53.0'],
+           'pypkjs.timeline': ['layouts.json'],
+       },
+       entry_points={
