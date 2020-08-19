@@ -16,8 +16,8 @@ jobs:
         name: pebble
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
     - name: Build pebble-tool
-      run: nix-build -A pebble-tool
+      run: nix-build -A packages.pebble-tool
     - name: Build pebble-qemu
-      run: nix-build -A pebble-qemu
+      run: nix-build -A packages.pebble-qemu
     - name: Build devShell
       run: nix-shell -A devShell --run "echo OK"
