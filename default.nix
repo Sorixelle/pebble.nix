@@ -10,5 +10,5 @@ let
 in {
   devShell = flake.shellNix.default;
 
-  inherit (packages) pebble-tool pebble-qemu pyv8;
+  inherit packages;
 }
