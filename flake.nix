@@ -18,6 +18,8 @@
         };
 
         packages = rec {
+          boost153 = pkgs.callPackage ./derivations/boost153 { };
+
           pebble-qemu = pkgs.callPackage ./derivations/pebble-qemu { };
           pebble-tool =
             pkgs.callPackage ./derivations/pebble-tool { inherit pyv8; };
@@ -27,6 +29,7 @@
               pkgs.stdenv
             else
               pkgs.gcc49Stdenv;
+            inherit boost153;
           };
         };
       });

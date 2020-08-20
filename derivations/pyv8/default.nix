@@ -1,6 +1,6 @@
 { stdenv, lib, python2, fetchFromGitHub, fetchgit
 , ensureNewerSourcesForZipFilesHook, update-python-libraries, darwin
-, linuxPackages, llvmPackages, system, which }:
+, boost153, linuxPackages, llvmPackages, system, which }:
 
 let
   v8-source = fetchFromGitHub {
@@ -20,7 +20,10 @@ let
 
   darwinDeps = lib.optionals stdenv.isDarwin (with darwin; [ cctools dtrace ]);
 
-  boost = python2.pkgs.boost.override { inherit stdenv; };
+  boost = boost153.override {
+    inherit stdenv;
+    python = python2;
+  };
 
 in with python2.pkgs;
 toPythonModule (stdenv.mkDerivation rec {
