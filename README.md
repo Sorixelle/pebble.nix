@@ -22,7 +22,11 @@ Finally, to use the pebble.nix cache (you might need to run this command with
 cachix use pebble
 ```
 
-To use pebble.nix, add the following to a `shell.nix` file, then use `nix-shell`:
+### Development Shell
+
+A development shell provides you with a shell containing the `pebble` tool and
+the Pebble emulator. To set it up in your project, create a `shell.nix` file
+with the following content in the root of your project:
 
 ```nix
 (import
@@ -30,7 +34,48 @@ To use pebble.nix, add the following to a `shell.nix` file, then use `nix-shell`
 ).devShell { }
 ```
 
-Or, if using Nix flakes + `nix develop`:
+Then, run `nix-shell` to open up a shell with all the tools for Pebble
+development.
+
+### Build for App Store
+
+`pebble.nix` can build your watchapp or watchface, and package it in a bundle
+ready for deployment to the Rebble App Store. Create a `default.nix` file in the
+root of your project with the following content, and change the properties for
+your project:
+
+```nix
+(import
+  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar/gz)
+).buildPebbleApp {
+  name = "App Name";
+  src = ./.;
+  type = "watchface";
+
+  description = ''
+    Your app description here.
+  '';
+
+  releaseNotes = ''
+    Initial release.
+  '';
+
+  screenshots = {
+    aplite = [ "assets/screenshots/aplite/screenshot.png" ];
+    basalt = [ "assets/screenshots/basalt/screenshot.png" ];
+    chalk = [ "assets/screenshots/chalk/screenshot.png" ];
+    diorite = [ "assets/screenshots/diorite/screenshot.png" ];
+  };
+}
+```
+
+To build the bundle, run `nix-build`. The bundle will be output to
+`result/appstore-bundle.tar.gz`.
+
+### Flake Support
+
+`pebble.nix` can be consumed as a flake, if you're using flakes in your project.
+You can use it with a `flake.nix` similar to the following:
 
 ```nix
 {
@@ -38,6 +83,8 @@ Or, if using Nix flakes + `nix develop`:
 
   outputs = { self, pebble }: {
     devShell.${system} = pebble.devShell.${system} { };
+
+	defaultPackage.${system} = pebble.buildPebbleApp.${system} { ... };
   };
 }
 ```
@@ -64,17 +111,49 @@ automatically.
 
 ### Development shells
 
-A development shell will give you access to all the tools needed to develop,
-build and test Pebble apps, including the `pebble` CLI tool, an ARM toolchain,
-and the Pebble emulator. You can customize the environment by passing the
-following arguments to the dev shell:
+Development shells can be configured by specifying the following arguments to
+`devShell`:
 
 - `devServerIP`: The default development server IP. You can find this in the
   Pebble app.
 - `emulatorTarget`: The default target to start the Pebble emulator for.
 - `nativeBuildInputs`: Any extra tools to use during development.
 
-## Future plans
+### App Store Builds
 
-- Building "Rebble App Store ready" tarballs containing everything needed for
-  publishing according to the [Rebble wiki](https://github.com/pebble-dev/wiki/wiki/Preparing-a-new-app-for-the-Rebble-App-Store)
+`buildPebbleApp` requires a few specific attributes to create the metadata YAML
+file the Rebble App Store uses to create your app's page.
+
+- `name`: The name of your app.
+- `type`: The type of app. Must be either `watchapp` or `watchface`.
+- `description`: A description of your app.
+- `releaseNotes`: The release notes for this version of your app.
+- `category`: The category of your app. Only needed for watchapps. The valid
+   values are:
+   - Daily
+   - Tools & Utilities
+   - Notifications
+   - Remotes
+   - Health & Fitness
+   - Games
+- `banner`: Path to a 720x320 image that will be displayed as the banner for
+  your app. Optional for watchfaces.
+- `smallIcon`: Path to a 48x48 icon for your app. Optional for watchfaces.
+- `largeIcon`: Path to a 144x144 icon for your app. Optional for watchfaces.
+- `homepage`: A URL to the homepage for your app. Optional.
+- `sourceUrl`: A URL to the source code of your app. Optional.
+- `screenshots`: An attribute set containing screenshots of your app on Pebble
+  watches. Each attribute contains a list of paths to screenshots. The following
+  attributes are valid:
+  - `aplite`: Screenshots for the aplite platform (Pebble, Pebble Steel)
+  - `basalt`: Screenshots for the basalt platform (Pebble Time, Pebble Time
+     Steel)
+  - `chalk`: Screenshots for the chalk platform (Pebble Time Round)
+  - `diorite`: Screenshots for the diorite platform (Pebble 2, Pebble 2 HR)
+  - `all`: Screenshots to be used for all platforms.
+
+Other options relating to the build process:
+
+- `src`: Path to the project root. Usually `./.` (the same file your Nix
+  expression is in).
+- `nativeBuildInputs`: Any extra tools/dependencies to be used at build time.
