@@ -46,7 +46,7 @@ your project:
 
 ```nix
 (import
-  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar/gz)
+  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar.gz)
 ).buildPebbleApp {
   name = "App Name";
   src = ./.;
@@ -84,7 +84,7 @@ You can use it with a `flake.nix` similar to the following:
   outputs = { self, pebble }: {
     devShell.${system} = pebble.devShell.${system} { };
 
-	defaultPackage.${system} = pebble.buildPebbleApp.${system} { ... };
+    defaultPackage.${system} = pebble.buildPebbleApp.${system} { ... };
   };
 }
 ```
@@ -154,6 +154,6 @@ file the Rebble App Store uses to create your app's page.
 
 Other options relating to the build process:
 
-- `src`: Path to the project root. Usually `./.` (the same file your Nix
+- `src`: Path to the project root. Usually `./.` (the same folder your Nix
   expression is in).
 - `nativeBuildInputs`: Any extra tools/dependencies to be used at build time.
