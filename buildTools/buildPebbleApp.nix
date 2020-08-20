@@ -2,7 +2,7 @@
 
 { name, src, nativeBuildInputs ? [ ], postUnpack ? "", type, description
 , releaseNotes, category ? "", banner ? "", smallIcon ? "", largeIcon ? ""
-, screenshots ? { }, homepage ? "", sourceUrl ? "", supportEmail ? "", ...
+, screenshots ? { }, homepage ? "", sourceUrl ? "", ...
 }@rest:
 
 let
@@ -60,14 +60,7 @@ let
     assert asserts.assertOneOf "type" type [ "watchface" "watchapp" ];
     assert if type == "watchapp" then
       let
-        validCategories = [
-          "Daily"
-          "Tools & Utilities"
-          "Notifications"
-          "Remotes"
-          "Health & Fitness"
-          "Games"
-        ];
+        validCategories = builtins.attrNames categoryMap;
       in if elem category validCategories then
         true
       else

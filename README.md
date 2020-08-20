@@ -143,8 +143,8 @@ file the Rebble App Store uses to create your app's page.
 - `homepage`: A URL to the homepage for your app. Optional.
 - `sourceUrl`: A URL to the source code of your app. Optional.
 - `screenshots`: An attribute set containing screenshots of your app on Pebble
-  watches. Each attribute contains a list of paths to screenshots. The following
-  attributes are valid:
+  watches. Each attribute contains a list of paths to screenshots. At least 1
+  screenshot in total must be provided. The following attributes are valid:
   - `aplite`: Screenshots for the aplite platform (Pebble, Pebble Steel)
   - `basalt`: Screenshots for the basalt platform (Pebble Time, Pebble Time
      Steel)
