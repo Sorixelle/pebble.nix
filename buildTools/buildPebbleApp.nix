@@ -1,8 +1,9 @@
 { nixpkgs, pebble-tool, pypng, system }:
 
-{ name, src, nativeBuildInputs ? [], postUnpack ? "", type, description, releaseNotes, category ? "", banner ? ""
-, smallIcon ? "", largeIcon ? "", screenshots ? { }, homepage ? ""
-, sourceUrl ? "", supportEmail ? "", ... }@rest:
+{ name, src, nativeBuildInputs ? [ ], postUnpack ? "", type, description
+, releaseNotes, category ? "", banner ? "", smallIcon ? "", largeIcon ? ""
+, screenshots ? { }, homepage ? "", sourceUrl ? "", supportEmail ? "", ...
+}@rest:
 
 let
   pkgs = import nixpkgs { inherit system; };
@@ -27,7 +28,7 @@ let
     let
       screenshotPaths = builtins.concatLists (attrValues screenshots);
       assets = let
-        allDeviceUrls = if screenshots ? all then screenshots.all else [];
+        allDeviceUrls = if screenshots ? all then screenshots.all else [ ];
         devices = removeAttrs screenshots [ "all" ];
       in builtins.concatStringsSep "\n" (mapAttrsToList (name: urls: ''
         - name: ${name}
@@ -80,11 +81,13 @@ let
     else
       true;
     assert if type == "watchapp" then
-      asserts.assertMsg (stringNotEmpty largeIcon) "largeIcon must point to a file"
+      asserts.assertMsg (stringNotEmpty largeIcon)
+      "largeIcon must point to a file"
     else
       true;
     assert if type == "watchapp" then
-      asserts.assertMsg (stringNotEmpty smallIcon) "smallIcon must point to a file"
+      asserts.assertMsg (stringNotEmpty smallIcon)
+      "smallIcon must point to a file"
     else
       true;
     assert asserts.assertMsg ((builtins.length screenshotPaths) > 0)
@@ -107,12 +110,13 @@ let
       large_icon: ${largeIcon}
     '';
 in pkgsCross.gcc8Stdenv.mkDerivation ({
-  name = builtins.replaceStrings [" "] ["-"] name;
+  name = builtins.replaceStrings [ " " ] [ "-" ] name;
   version = "1";
 
   inherit src;
 
-  nativeBuildInputs = [ pebble-tool pkgs.nodejs pythonEnv ] ++ nativeBuildInputs;
+  nativeBuildInputs = [ pebble-tool pkgs.nodejs pythonEnv ]
+    ++ nativeBuildInputs;
 
   postUnpack = ''
     # Setup Pebble SDK
@@ -147,7 +151,8 @@ in pkgsCross.gcc8Stdenv.mkDerivation ({
 
       cp ${metaYaml} $out/meta.yml
       cp build/$(basename `pwd`).pbw "$out/${name}.pbw"
-      ${builtins.concatStringsSep "\n" (map (path: "cp ${path} $out/${path}") screenshotPaths)}
+      ${builtins.concatStringsSep "\n"
+      (map (path: "cp ${path} $out/${path}") screenshotPaths)}
 
     '' + pkgs.lib.optionalString (stringNotEmpty banner) ''
       cp ${banner} $out/${banner}
@@ -160,4 +165,10 @@ in pkgsCross.gcc8Stdenv.mkDerivation ({
       cd $out
       tar czf appstore-bundle.tar.gz *
     '';
-} // (removeAttrs rest ["name" "src" "nativeBuildInputs" "postUnpack" "screenshots"]))
+} // (removeAttrs rest [
+  "name"
+  "src"
+  "nativeBuildInputs"
+  "postUnpack"
+  "screenshots"
+]))

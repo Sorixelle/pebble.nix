@@ -1,6 +1,6 @@
 { stdenv, lib, python2, fetchFromGitHub, fetchgit
-, ensureNewerSourcesForZipFilesHook, update-python-libraries, darwin
-, boost153, linuxPackages, llvmPackages, system, which }:
+, ensureNewerSourcesForZipFilesHook, update-python-libraries, darwin, boost153
+, linuxPackages, llvmPackages, system, which }:
 
 let
   v8-source = fetchFromGitHub {
