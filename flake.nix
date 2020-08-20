@@ -11,10 +11,18 @@
     flake-utils.lib.eachSystem [ "i686-linux" "x86_64-linux" "x86_64-darwin" ]
     (system:
       let pkgs = import nixpkgs { inherit system; };
-      in {
+      in rec {
         devShell = import ./derivations/dev-shell.nix {
           inherit nixpkgs system;
           pebble = self.packages.${system};
+        };
+
+        buildPebbleApp = import ./buildTools/buildPebbleApp.nix {
+          inherit nixpkgs system;
+          pebble-tool = packages.pebble-tool;
+          pypng = (pkgs.callPackage ./derivations/pebble-tool/python-libs.nix {
+            pyv8 = packages.pyv8;
+          }).pypng;
         };
 
         packages = rec {

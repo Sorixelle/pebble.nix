@@ -9,6 +9,7 @@ let
   packages = flake.defaultNix.outputs.packages.${system};
 in {
   devShell = flake.shellNix.default;
+  buildPebbleApp = flake.defaultNix.outputs.buildPebbleApp.${system};
 
   inherit packages;
 }
