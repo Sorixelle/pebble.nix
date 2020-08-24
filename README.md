@@ -22,6 +22,9 @@ Finally, to use the pebble.nix cache (you might need to run this command with
 cachix use pebble
 ```
 
+After setting up Cachix, reboot the system. This is required to restart the Nix
+daemon so that it uses the new binary cache.
+
 ### Development Shell
 
 A development shell provides you with a shell containing the `pebble` tool and
