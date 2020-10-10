@@ -19,7 +19,7 @@ let
   ];
 in pkgs.callPackage ({ gcc8Stdenv, nodejs }:
   gcc8Stdenv.mkDerivation {
-    name = "pebble-dev-shell";
+    name = "pebble-env";
     phases = [ "nophase" ];
 
     nativeBuildInputs = with pebble;
@@ -28,6 +28,8 @@ in pkgs.callPackage ({ gcc8Stdenv, nodejs }:
     PEBBLE_PHONE = devServerIP;
     PEBBLE_EMULATOR = emulatorTarget;
 
-    nophase =
-      "echo This derivation is a Pebble development shell, and not meant to be built.; exit 1";
+    nophase = ''
+      echo This derivation is a Pebble development shell, and not meant to be built.
+      exit 1
+    '';
   } // rest) { }

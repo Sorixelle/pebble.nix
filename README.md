@@ -34,7 +34,7 @@ with the following content in the root of your project:
 ```nix
 (import
   (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar.gz)
-).devShell { }
+).pebbleEnv { }
 ```
 
 Then, run `nix-shell` to open up a shell with all the tools for Pebble
@@ -85,7 +85,7 @@ You can use it with a `flake.nix` similar to the following:
   inputs.pebble.url = github:Sorixelle/pebble.nix;
 
   outputs = { self, pebble }: {
-    devShell.${system} = pebble.devShell.${system} { };
+    devShell.${system} = pebble.pebbleEnv.${system} { };
 
     defaultPackage.${system} = pebble.buildPebbleApp.${system} { ... };
   };
@@ -115,7 +115,7 @@ automatically.
 ### Development shells
 
 Development shells can be configured by specifying the following arguments to
-`devShell`:
+`pebbleEnv`:
 
 - `devServerIP`: The default development server IP. You can find this in the
   Pebble app.

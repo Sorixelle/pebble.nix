@@ -12,7 +12,7 @@
     (system:
       let pkgs = import nixpkgs { inherit system; };
       in rec {
-        devShell = import ./buildTools/devShell.nix {
+        pebbleEnv = import ./buildTools/pebbleEnv.nix {
           inherit nixpkgs system;
           pebble = self.packages.${system};
         };
