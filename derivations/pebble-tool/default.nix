@@ -10,13 +10,13 @@ let
   rpath = lib.makeLibraryPath [ freetype stdenv.cc.cc.lib zlib ];
 in python2Packages.buildPythonPackage rec {
   pname = "pebble-tool";
-  version = "4.6rc1";
+  version = "4.6rc2";
 
   src = fetchFromGitHub {
     owner = "pebble-dev";
     repo = "pebble-tool";
-    rev = "f1b4d08f5b0d99ac50407691065766ce17d2cdb8";
-    sha256 = "1hxmk6lhrgrhcikp4zy44mj80fxbqd53wykya97r4ikgbvzyanm6";
+    rev = "92561f5c075fe5c812b69409ef338a3548928472";
+    sha256 = "1070jkkzg9ba1vp4gq3yfxw456gzajw37kidh1qiv1wawb655j9q";
   };
 
   nativeBuildInputs = [ makeWrapper ];
