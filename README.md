@@ -120,6 +120,8 @@ Development shells can be configured by specifying the following arguments to
 - `devServerIP`: The default development server IP. You can find this in the
   Pebble app.
 - `emulatorTarget`: The default target to start the Pebble emulator for.
+- `cloudPebble`: Whether to connect via a CloudPebble connection. Requires
+  logging into Rebble via `pebble login`.
 - `nativeBuildInputs`: Any extra tools to use during development.
 
 ### App Store Builds
