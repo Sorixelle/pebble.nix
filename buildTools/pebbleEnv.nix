@@ -4,6 +4,8 @@
 
 , emulatorTarget ? null
 
+, cloudPebble ? false
+
 , nativeBuildInputs ? [ ] }@attrs:
 
 let
@@ -15,6 +17,7 @@ let
   rest = builtins.removeAttrs attrs [
     "devServerIP"
     "emulatorTarget"
+    "cloudPebble"
     "nativeBuildInputs"
   ];
 in pkgs.callPackage ({ gcc8Stdenv, nodejs }:
@@ -27,6 +30,7 @@ in pkgs.callPackage ({ gcc8Stdenv, nodejs }:
 
     PEBBLE_PHONE = devServerIP;
     PEBBLE_EMULATOR = emulatorTarget;
+    PEBBLE_CLOUDPEBBLE = if cloudPebble then "1" else null;
 
     nophase = ''
       echo This derivation is a Pebble development shell, and not meant to be built.
