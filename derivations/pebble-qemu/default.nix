@@ -27,6 +27,8 @@ in stdenv.mkDerivation rec {
       # pebble/qemu references a git://github.com URL, which won't work as of 2022.
       export HOME=$PWD
       git config --global url.https://github.com/.insteadOf git://github.com/
+      # Qemu repos moved to GitLab
+      git config --global url.https://gitlab.com/qemu-project/.insteadOf git://git.qemu-project.org/
     '';
   });
 
