@@ -10,7 +10,12 @@
   outputs = { self, flake-utils, nixpkgs }:
     flake-utils.lib.eachSystem [ "i686-linux" "x86_64-linux" "x86_64-darwin" ]
     (system:
-      let pkgs = import nixpkgs { inherit system; };
+      let pkgs = import nixpkgs {
+        inherit system;
+        config = {
+          permittedInsecurePackages = [ "python-2.7.18.8" ];
+        };
+      };
       in rec {
         pebbleEnv = import ./buildTools/pebbleEnv.nix {
           inherit nixpkgs system;
@@ -33,10 +38,6 @@
             pkgs.callPackage ./derivations/pebble-tool { inherit pyv8; };
 
           pyv8 = pkgs.callPackage ./derivations/pyv8 {
-            stdenv = if system == "x86_64-darwin" then
-              pkgs.stdenv
-            else
-              pkgs.gcc49Stdenv;
             inherit boost153;
           };
         };

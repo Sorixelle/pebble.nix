@@ -23,19 +23,11 @@ in python2Packages.buildPythonPackage rec {
 
   propagatedBuildInputs = builtins.attrValues pythonLibs
     ++ (with python2Packages; [
-      colorama
       enum34
       httplib2
-      oauth2client
       packaging
-      pyasn1
-      pyasn1-modules
       pyqrcode
       pyserial
-      requests
-      rsa
-      virtualenv
-      websocket_client
 
       freetype
     ]);

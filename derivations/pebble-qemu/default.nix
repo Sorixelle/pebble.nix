@@ -1,5 +1,5 @@
 { stdenv, lib, fetchFromGitHub, autoconf, automake, darwin, glib, libtool, perl
-, pixman, pkgconfig, python2, SDL2, zlib }:
+, pixman, pkg-config, python2, SDL2, zlib }:
 
 let
   darwinDeps = lib.optionals stdenv.isDarwin (with darwin.apple_sdk.frameworks;
@@ -22,17 +22,20 @@ in stdenv.mkDerivation rec {
     rev = "v${version}";
     sha256 = "1r7692hhd70nrbscznc33vi3ndv51sdlg9vc0ay4h4s1xrqv5d0g";
     fetchSubmodules = true;
-  }).overrideAttrs (attrs: {
-    postHook = ''
-      # pebble/qemu references a git://github.com URL, which won't work as of 2022.
-      export HOME=$PWD
-      git config --global url.https://github.com/.insteadOf git://github.com/
-      # Qemu repos moved to GitLab
-      git config --global url.https://gitlab.com/qemu-project/.insteadOf git://git.qemu-project.org/
-    '';
+  }).overrideAttrs (_: {
+    GIT_CONFIG_COUNT = 3;
+    # pebble/qemu references a git://github.com URL, which won't work as of 2022.
+    GIT_CONFIG_KEY_0 = "url.https://github.com/.insteadOf";
+    GIT_CONFIG_VALUE_0 = "git://github.com/";
+    # Qemu repos moved to GitLab
+    GIT_CONFIG_KEY_1 = "url.https://gitlab.com/qemu-project/.insteadOf";
+    GIT_CONFIG_VALUE_1 = "git://git.qemu-project.org/";
+    # freedesktop.org Anongit no longer works - use GitLab directly
+    GIT_CONFIG_KEY_2 = "url.https://gitlab.freedesktop.org/pixman/pixman.insteadOf";
+    GIT_CONFIG_VALUE_2 = "git://anongit.freedesktop.org/pixman";
   });
 
-  nativeBuildInputs = [ autoconf automake libtool perl pkgconfig python2 ];
+  nativeBuildInputs = [ autoconf automake libtool perl pkg-config python2 ];
 
   buildInputs = [ glib pixman SDL2 zlib ] ++ darwinDeps;
 

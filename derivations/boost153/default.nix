@@ -1,4 +1,4 @@
-{ stdenv, fetchurl, icu, expat, zlib, bzip2, python, fixDarwinDylibNames
+{ stdenv, lib, fetchurl, icu, expat, zlib, bzip2, python, fixDarwinDylibNames
 , enableRelease ? true, enableDebug ? false, enableSingleThreaded ? false
 , enableMultiThreaded ? true, enableShared ? true, enableStatic ? false
 , enablePIC ? false, enableExceptions ? false, taggedLayout ?
@@ -7,7 +7,7 @@
     || (enableShared && enableStatic))
 , toolset ? if stdenv.cc.isClang then "clang" else null }:
 
-with stdenv.lib;
+with lib;
 let
 
   variant = concatStringsSep ","
@@ -81,7 +81,7 @@ in stdenv.mkDerivation {
   '';
 
   NIX_CFLAGS_LINK =
-    stdenv.lib.optionalString stdenv.isDarwin "-headerpad_max_install_names";
+    lib.optionalString stdenv.isDarwin "-headerpad_max_install_names";
 
   enableParallelBuilding = true;
 
