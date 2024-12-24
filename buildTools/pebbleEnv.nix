@@ -6,7 +6,9 @@
 
 , cloudPebble ? false
 
-, nativeBuildInputs ? [ ] }@attrs:
+, nativeBuildInputs ? [ ]
+
+, CFLAGS ? "" }@attrs:
 
 let
   pkgs = import nixpkgs {
@@ -20,8 +22,8 @@ let
     "cloudPebble"
     "nativeBuildInputs"
   ];
-in pkgs.callPackage ({ gcc9Stdenv, nodejs }:
-  gcc9Stdenv.mkDerivation {
+in pkgs.callPackage ({ gccStdenv, nodejs }:
+  gccStdenv.mkDerivation {
     name = "pebble-env";
     phases = [ "nophase" ];
 
@@ -31,6 +33,8 @@ in pkgs.callPackage ({ gcc9Stdenv, nodejs }:
     PEBBLE_PHONE = devServerIP;
     PEBBLE_EMULATOR = emulatorTarget;
     PEBBLE_CLOUDPEBBLE = if cloudPebble then "1" else null;
+
+    CFLAGS = "-Wno-error=builtin-macro-redefined -Wno-error=builtin-declaration-mismatch -include sys/types.h " + CFLAGS;
 
     nophase = ''
       echo This derivation is a Pebble development shell, and not meant to be built.
