@@ -36,13 +36,13 @@ let
     "$NIX_BUILD_CORES";
 
   cflags = if enablePIC && enableExceptions then
-    ''cflags="-fPIC -fexceptions" cxxflags=-fPIC linkflags=-fPIC''
+    ''cflags="-fPIC -fexceptions" cxxflags="-fPIC -std=c++11" linkflags=-fPIC''
   else if enablePIC then
-    "cflags=-fPIC cxxflags=-fPIC linkflags=-fPIC"
+    ''cflags=-fPIC cxxflags="-fPIC -std=c++11" linkflags=-fPIC''
   else if enableExceptions then
-    "cflags=-fexceptions"
+    "cflags=-fexceptions cxxflags=-std=c++11"
   else
-    "";
+    "cxxflags=-std=c++11";
 
   b2Args = concatStringsSep " " ([
     "-j$NIX_BUILD_CORES"
