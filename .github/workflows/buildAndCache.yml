@@ -1,6 +1,5 @@
 name: "Build"
 on:
-  pull_request:
   push:
 jobs:
   build:
@@ -9,9 +8,11 @@ jobs:
         os: [ ubuntu-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2.3.1
-    - uses: cachix/install-nix-action@v10
-    - uses: cachix/cachix-action@v6
+    - uses: actions/checkout@v4
+    - uses: cachix/install-nix-action@v25
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v14
       with:
         name: pebble
         signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
