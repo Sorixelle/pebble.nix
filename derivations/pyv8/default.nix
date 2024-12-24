@@ -76,10 +76,10 @@ toPythonModule (stdenv.mkDerivation rec {
     ./fix-CreateHandle-scope.patch
     ./fix-extension-build.patch
     ./fix-gyp-darwin.patch
+    ./fix-v8-segfault.patch
   ];
 
   postPatch = ''
-    substituteInPlace setup.py --replace "V8_SNAPSHOT_ENABLED = not DEBUG" "V8_SNAPSHOT_ENABLED = False"
     substituteInPlace $V8_HOME/build/gyp/gyp --replace "bash" "sh"
   '' + lib.optionalString stdenv.cc.isClang ''
     substituteInPlace $V8_HOME/Makefile --replace "g++" "clang++"

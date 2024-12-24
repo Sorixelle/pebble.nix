@@ -1,0 +1,110 @@
+diff --git a/src/hydrogen-load-elimination.cc b/src/hydrogen-load-elimination.cc
+index f84eac046..97bd46d2d 100644
+--- a/v8-source/src/hydrogen-load-elimination.cc
++++ b/v8-source/src/hydrogen-load-elimination.cc
+@@ -52,7 +52,11 @@ class HFieldApproximation : public ZoneObject {
+     HFieldApproximation* copy = new(zone) HFieldApproximation();
+     copy->object_ = this->object_;
+     copy->last_value_ = this->last_value_;
+-    copy->next_ = this->next_->Copy(zone);
++    if (this->next_ != NULL) {
++      copy->next_ = this->next_->Copy(zone);
++    } else {
++      copy->next_ = NULL;
++    }
+     return copy;
+   }
+ };
+@@ -173,7 +177,11 @@ class HLoadEliminationTable : public ZoneObject {
+         new(zone) HLoadEliminationTable(zone, aliasing_);
+     copy->EnsureFields(fields_.length());
+     for (int i = 0; i < fields_.length(); i++) {
+-      copy->fields_[i] = fields_[i]->Copy(zone);
++      if (fields_[i] != NULL) {
++        copy->fields_[i] = fields_[i]->Copy(zone);
++      } else {
++        copy->fields_[i] = NULL;
++      }
+     }
+     if (FLAG_trace_load_elimination) {
+       TRACE((" copy-to B%d\n", succ->block_id()));
+diff --git a/src/isolate.cc b/src/isolate.cc
+index 2d45d78b0..e455e6c15 100644
+--- a/v8-source/src/isolate.cc
++++ b/v8-source/src/isolate.cc
+@@ -298,7 +298,9 @@ void Isolate::Iterate(ObjectVisitor* v, ThreadLocalTop* thread) {
+   }
+ 
+   // Iterate pointers in live lookup results.
+-  thread->top_lookup_result_->Iterate(v);
++  if (thread->top_lookup_result_ != NULL) {
++    thread->top_lookup_result_->Iterate(v);
++  }
+ }
+ 
+ 
+diff --git a/src/spaces-inl.h b/src/spaces-inl.h
+index 778cb18d7..f3ed1bdfb 100644
+--- a/v8-source/src/spaces-inl.h
++++ b/v8-source/src/spaces-inl.h
+@@ -177,6 +177,7 @@ Page* Page::Initialize(Heap* heap,
+ 
+ 
+ bool PagedSpace::Contains(Address addr) {
++  if (addr == NULL) return false;
+   Page* p = Page::FromAddress(addr);
+   if (!p->is_valid()) return false;
+   return p->owner() == this;
+diff --git a/src/spaces.cc b/src/spaces.cc
+index 6c03daa75..cfb70b8fe 100644
+--- a/v8-source/src/spaces.cc
++++ b/v8-source/src/spaces.cc
+@@ -2584,27 +2584,29 @@ bool PagedSpace::AdvanceSweeper(intptr_t bytes_to_sweep) {
+   if (IsLazySweepingComplete()) return true;
+ 
+   intptr_t freed_bytes = 0;
+-  Page* p = first_unswept_page_;
+-  do {
+-    Page* next_page = p->next_page();
+-    if (ShouldBeSweptLazily(p)) {
+-      if (FLAG_gc_verbose) {
+-        PrintF("Sweeping 0x%" V8PRIxPTR " lazily advanced.\n",
+-               reinterpret_cast<intptr_t>(p));
++  if (first_unswept_page_ != NULL) {
++    Page* p = first_unswept_page_;
++    do {
++      Page* next_page = p->next_page();
++      if (ShouldBeSweptLazily(p)) {
++        if (FLAG_gc_verbose) {
++          PrintF("Sweeping 0x%" V8PRIxPTR " lazily advanced.\n",
++                 reinterpret_cast<intptr_t>(p));
++        }
++        DecreaseUnsweptFreeBytes(p);
++        freed_bytes +=
++            MarkCompactCollector::
++                SweepConservatively<MarkCompactCollector::SWEEP_SEQUENTIALLY>(
++                    this, NULL, p);
+       }
+-      DecreaseUnsweptFreeBytes(p);
+-      freed_bytes +=
+-          MarkCompactCollector::
+-              SweepConservatively<MarkCompactCollector::SWEEP_SEQUENTIALLY>(
+-                  this, NULL, p);
+-    }
+-    p = next_page;
+-  } while (p != anchor() && freed_bytes < bytes_to_sweep);
++      p = next_page;
++    } while (p != anchor() && freed_bytes < bytes_to_sweep);
+ 
+-  if (p == anchor()) {
+-    first_unswept_page_ = Page::FromAddress(NULL);
+-  } else {
+-    first_unswept_page_ = p;
++    if (p == anchor()) {
++      first_unswept_page_ = Page::FromAddress(NULL);
++    } else {
++      first_unswept_page_ = p;
++    }
+   }
+ 
+   heap()->FreeQueuedChunks();
