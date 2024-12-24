@@ -20,8 +20,8 @@ let
     "cloudPebble"
     "nativeBuildInputs"
   ];
-in pkgs.callPackage ({ gcc8Stdenv, nodejs }:
-  gcc8Stdenv.mkDerivation {
+in pkgs.callPackage ({ gcc9Stdenv, nodejs }:
+  gcc9Stdenv.mkDerivation {
     name = "pebble-env";
     phases = [ "nophase" ];
 
