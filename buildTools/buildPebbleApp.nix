@@ -1,20 +1,18 @@
-{ nixpkgs, pebble-tool, pypng, system }:
+{ pkgs, nixpkgs, pebble-tool, python-libs, system }:
 
 { name, src, nativeBuildInputs ? [ ], postUnpack ? "", type, description
 , releaseNotes, category ? "", banner ? "", smallIcon ? "", largeIcon ? ""
-, screenshots ? { }, homepage ? "", sourceUrl ? "", ...
+, screenshots ? { }, homepage ? "", sourceUrl ? "", CFLAGS ? "", ...
 }@rest:
 
 let
-  pkgs = import nixpkgs { inherit system; };
-
   pkgsCross = import nixpkgs {
     inherit system;
     crossSystem = nixpkgs.lib.systems.examples.arm-embedded;
   };
 
   nodeEnv = (pkgs.callPackage ./nodeEnv { }).nodeDependencies;
-  pythonEnv = pkgs.python2.withPackages (ps: with ps; [ freetype-py sh pypng ]);
+  pythonEnv = pkgs.python2.withPackages (ps: with python-libs; [ ps.freetype-py sh pypng ]);
 
   pebble-sdk = pkgs.fetchzip {
     url = "https://binaries.rebble.io/sdk-core/release/sdk-core-4.3.tar.bz2";
@@ -102,7 +100,7 @@ let
       small_icon: ${smallIcon}
       large_icon: ${largeIcon}
     '';
-in pkgsCross.gcc8Stdenv.mkDerivation ({
+in pkgsCross.gccStdenv.mkDerivation ({
   name = builtins.replaceStrings [ " " ] [ "-" ] name;
   version = "1";
 
@@ -123,6 +121,8 @@ in pkgsCross.gcc8Stdenv.mkDerivation ({
 
     chmod -R u+w $HOME
   '' + postUnpack;
+
+  CFLAGS = "-Wno-error=builtin-macro-redefined -Wno-error=builtin-declaration-mismatch -include sys/types.h " + CFLAGS;
 
   buildPhase = ''
     pebble clean

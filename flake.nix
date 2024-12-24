@@ -13,7 +13,7 @@
       let pkgs = import nixpkgs {
         inherit system;
         config = {
-          permittedInsecurePackages = [ "python-2.7.18.8" ];
+          permittedInsecurePackages = [ "python-2.7.18.8" "python-2.7.18.8-env" ];
         };
       };
       in rec {
@@ -23,11 +23,11 @@
         };
 
         buildPebbleApp = import ./buildTools/buildPebbleApp.nix {
-          inherit nixpkgs system;
+          inherit pkgs nixpkgs system;
           pebble-tool = packages.pebble-tool;
-          pypng = (pkgs.callPackage ./derivations/pebble-tool/python-libs.nix {
+          python-libs = pkgs.callPackage ./derivations/pebble-tool/python-libs.nix {
             pyv8 = packages.pyv8;
-          }).pypng;
+          };
         };
 
         packages = rec {
