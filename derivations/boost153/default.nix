@@ -90,7 +90,7 @@ in stdenv.mkDerivation {
 
   configureScript = "./bootstrap.sh";
   configureFlags =
-    [ "--with-icu=${icu.dev}" "--with-python=${python.interpreter}" ]
+    [ "--with-icu=${icu.dev}" "--with-python=${python.interpreter}" "--with-libraries=python,thread" ]
     ++ optional (toolset != null) "--with-toolset=${toolset}";
 
   buildPhase = "./b2 ${b2Args} install";
