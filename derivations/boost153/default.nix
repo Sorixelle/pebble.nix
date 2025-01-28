@@ -35,14 +35,16 @@ let
   else
     "$NIX_BUILD_CORES";
 
+  silenceClangError = if stdenv.cc.isClang then " -Wno-enum-constexpr-conversion" else "";
+
   cflags = if enablePIC && enableExceptions then
-    ''cflags="-fPIC -fexceptions" cxxflags="-fPIC -std=c++11" linkflags=-fPIC''
+    ''cflags="-fPIC -fexceptions" cxxflags="-fPIC -std=c++11${silenceClangError}" linkflags=-fPIC''
   else if enablePIC then
-    ''cflags=-fPIC cxxflags="-fPIC -std=c++11" linkflags=-fPIC''
+    ''cflags=-fPIC cxxflags="-fPIC -std=c++11${silenceClangError}" linkflags=-fPIC''
   else if enableExceptions then
-    "cflags=-fexceptions cxxflags=-std=c++11"
+    ''cflags=-fexceptions cxxflags="-std=c++11${silenceClangError}"''
   else
-    "cxxflags=-std=c++11";
+    ''cxxflags=-"std=c++11${silenceClangError}"'';
 
   b2Args = concatStringsSep " " ([
     "-j$NIX_BUILD_CORES"
