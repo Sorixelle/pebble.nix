@@ -1,0 +1,10 @@
+#!/usr/bin/env fish
+
+# instantiate derivation
+set drv_path (nix-instantiate -A packagesAllArchs.aarch64-darwin.$argv[1])
+
+# copy derivation closure to darwin machine
+nix copy --to ssh://$REMOTE_BUILD_SSH -s $drv_path
+
+# actually build the derivation on the darwin machine
+ssh $REMOTE_BUILD_SSH "nix build -L \"$drv_path^*\""

@@ -10,4 +10,6 @@ in {
   buildPebbleApp = flake.buildPebbleApp.${system};
   packages = flake.packages.${system};
   pebbleEnv = flake.pebbleEnv.${system};
+
+  packagesAllArchs = flake.packages;
 }
