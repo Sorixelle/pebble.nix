@@ -154,7 +154,7 @@ with python2Packages; rec {
     };
   };
 
-  pypkjs = buildPythonPackage rec {
+  pypkjs = if stdenv.isLinux then (buildPythonPackage rec {
     pname = "pypkjs";
     version = "1.1.1";
     src = fetchFromGitHub {
@@ -196,7 +196,7 @@ with python2Packages; rec {
       wrapProgram $out/bin/pypkjs \
         --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ stdenv.cc.cc.lib ]}
     '';
-  };
+  }) else null;
 
   pypng = buildPythonPackage rec {
     pname = "pypng";

@@ -38,10 +38,12 @@ in python2Packages.buildPythonPackage rec {
   '';
   patches = [ ./exec-phonesim.patch ./fix-virtualenv-commands.patch ];
 
-  postFixup = ''
+  postFixup = let
+    pypkjsPath = if stdenv.isDarwin then "TODO:_fix_this" else pythonLibs.pypkjs;
+  in ''
     wrapProgram $out/bin/pebble \
       --prefix LD_LIBRARY_PATH : ${rpath} \
-      --set PHONESIM_PATH ${pythonLibs.pypkjs}/bin/pypkjs
+      --set PHONESIM_PATH ${pypkjsPath}
   '';
 
   meta = with lib; {
