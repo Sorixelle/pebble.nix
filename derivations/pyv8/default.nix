@@ -1,6 +1,6 @@
 { stdenv, lib, python2, fetchFromGitHub, fetchgit
 , ensureNewerSourcesForZipFilesHook, update-python-libraries, darwin, boost153
-, linuxPackages, llvmPackages, system, which }:
+, dos2unix, linuxPackages, llvmPackages, system, which }:
 
 let
   v8-source = fetchFromGitHub {
@@ -37,6 +37,7 @@ toPythonModule (stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = [
+    dos2unix
     python
     wrapPython
     ensureNewerSourcesForZipFilesHook
@@ -72,7 +73,13 @@ toPythonModule (stdenv.mkDerivation rec {
     chmod -R +w $V8_HOME/build/gyp
   '';
 
+  prePatch = ''
+    # make my patching life easier
+    dos2unix src/AST.h
+  '';
+
   patches = [
+    ./aarch64-darwin-support.patch
     ./fix-CreateHandle-scope.patch
     ./fix-extension-build.patch
     ./fix-gyp-darwin.patch

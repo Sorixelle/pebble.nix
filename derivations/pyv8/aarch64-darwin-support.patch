@@ -1,0 +1,73 @@
+diff --git a/setup.py b/setup.py
+index 051a321..4fb8d9b 100644
+--- a/setup.py
++++ b/setup.py
+@@ -23,6 +23,7 @@ is_cygwin = os.name == "posix" and sys.platform == "cygwin"
+ is_mingw = is_winnt and os.environ.get('MSYSTEM', '').startswith('MINGW')
+ is_64bit = False
+ is_arm = False
++is_a64 = False
+ 
+ if is_cygwin or is_mingw:
+     print("ERROR: Cygwin or MingGW is not official support, please try to use Visual Studio 2010 Express or later.")
+@@ -279,7 +280,12 @@ elif is_osx: # contribute by progrium and alec
+ 
+     is_64bit = math.trunc(math.ceil(math.log(sys.maxsize, 2)) + 1) == 64 # contribute by viy
+ 
+-    if is_64bit:
++    if os.uname()[-1] == 'arm64':
++        is_a64 = True
++        os.environ['ARCHFLAGS'] = '-arch arm64'
++        extra_link_args += ["-fPIC"]
++        macros += [("V8_TARGET_ARCH_A64", None)]
++    elif is_64bit:
+         os.environ['ARCHFLAGS'] = '-arch x86_64'
+         extra_link_args += ["-fPIC"]
+         macros += [("V8_TARGET_ARCH_X64", None)]
+@@ -297,7 +303,7 @@ elif is_osx: # contribute by progrium and alec
+ else:
+     print("ERROR: unsupported OS (%s) and platform (%s)" % (os.name, sys.platform))
+ 
+-arch = 'x64' if is_64bit else 'arm' if is_arm else 'ia32'
++arch = 'a64' if is_a64 else 'x64' if is_64bit else 'arm' if is_arm else 'ia32'
+ mode = 'debug' if DEBUG else 'release'
+ 
+ libraries += ['v8_base.' + arch, 'v8_snapshot' if V8_SNAPSHOT_ENABLED else ('v8_nosnapshot.' + arch)]
+diff --git a/src/atomicops.h b/src/atomicops.h
+index d7d4df6763f..64c3e2e0f68 100644
+--- a/v8-source/src/atomicops.h
++++ b/v8-source/src/atomicops.h
+@@ -58,14 +58,8 @@ typedef int32_t Atomic32;
+ #ifdef V8_HOST_ARCH_64_BIT
+ // We need to be able to go between Atomic64 and AtomicWord implicitly.  This
+ // means Atomic64 and AtomicWord should be the same type on 64-bit.
+-#if defined(__ILP32__) || defined(__APPLE__)
+-// MacOS is an exception to the implicit conversion rule above,
+-// because it uses long for intptr_t.
+-typedef int64_t Atomic64;
+-#else
+ typedef intptr_t Atomic64;
+ #endif
+-#endif
+ 
+ // Use AtomicWord for a machine-sized pointer.  It will use the Atomic32 or
+ // Atomic64 routines below, depending on your architecture.
+diff --git a/src/AST.h b/src/AST.h
+index 84641df..5e1c86c 100644
+--- a/src/AST.h
++++ b/src/AST.h
+@@ -2,14 +2,6 @@
+ 
+ #include <vector>
+ 
+-#ifndef WIN32
+-
+-#ifndef isfinite
+-#define isfinite(val) (val <= std::numeric_limits<double>::max())
+-#endif
+-
+-#endif
+-
+ #undef COMPILER
+ #include "src/v8.h"
+ #include "src/ast.h"
