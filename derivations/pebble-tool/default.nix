@@ -43,6 +43,7 @@ in python2Packages.buildPythonPackage rec {
   in ''
     wrapProgram $out/bin/pebble \
       --prefix LD_LIBRARY_PATH : ${rpath} \
+      --prefix DYLD_LIBRARY_PATH : ${rpath} \
       --set PHONESIM_PATH ${pypkjsPath}
   '';
 
