@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, autoconf, automake, darwin, glib, libtool, perl
+{ stdenv, lib, fetchFromGitHub, autoconf, automake, bison, darwin, flex, glib, libtool, perl
 , pixman, pkg-config, python2, SDL2, zlib }:
 
 let
@@ -35,11 +35,11 @@ in stdenv.mkDerivation rec {
     GIT_CONFIG_VALUE_2 = "git://anongit.freedesktop.org/pixman";
   });
 
-  nativeBuildInputs = [ autoconf automake libtool perl pkg-config python2 ];
+  nativeBuildInputs = [ autoconf automake bison flex libtool perl pkg-config python2 ];
 
   buildInputs = [ glib pixman SDL2 zlib ] ++ darwinDeps;
 
-  patches = [ ./memfd-fix.patch ] ++ linuxPatches;
+  patches = [ ./memfd-fix.patch ./stm32-includes.patch ./version-file-rename.patch ] ++ linuxPatches;
 
   configureFlags = [
     "--with-coroutine=gthread"

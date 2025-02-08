@@ -1,0 +1,53 @@
+diff --git a/VERSION b/QEMU_VERSION
+similarity index 100%
+rename from VERSION
+rename to QEMU_VERSION
+diff --git a/configure b/configure
+index 8420de7f4..bf1a2406b 100755
+--- a/configure
++++ b/configure
+@@ -753,7 +753,7 @@ for opt do
+   case "$opt" in
+   --help|-h) show_help=yes
+   ;;
+-  --version|-V) exec cat $source_path/VERSION
++  --version|-V) exec cat $source_path/QEMU_VERSION
+   ;;
+   --prefix=*) prefix="$optarg"
+   ;;
+@@ -1413,7 +1413,7 @@ fi
+ 
+ # Consult white-list to determine whether to enable werror
+ # by default.  Only enable by default for git builds
+-z_version=`cut -f3 -d. $source_path/VERSION`
++z_version=`cut -f3 -d. $source_path/QEMU_VERSION`
+ 
+ if test -z "$werror" ; then
+     if test -d "$source_path/.git" -a \
+@@ -4647,7 +4647,7 @@ if test "$guest_agent_msi" = "yes"; then
+   fi
+ 
+   if test "$QEMU_GA_VERSION" = ""; then
+-      QEMU_GA_VERSION=`cat $source_path/VERSION`
++      QEMU_GA_VERSION=`cat $source_path/QEMU_VERSION`
+   fi
+ 
+   QEMU_GA_MSI_MINGW_DLL_PATH="-D Mingw_dlls=`$pkg_config --variable=prefix glib-2.0`/bin"
+@@ -4900,7 +4900,7 @@ if test "$bigendian" = "yes" ; then
+ fi
+ if test "$mingw32" = "yes" ; then
+   echo "CONFIG_WIN32=y" >> $config_host_mak
+-  rc_version=`cat $source_path/VERSION`
++  rc_version=`cat $source_path/QEMU_VERSION`
+   version_major=${rc_version%%.*}
+   rc_version=${rc_version#*.}
+   version_minor=${rc_version%%.*}
+@@ -5008,7 +5008,7 @@ fi
+ if test "$xfs" = "yes" ; then
+   echo "CONFIG_XFS=y" >> $config_host_mak
+ fi
+-qemu_version=`head $source_path/VERSION`
++qemu_version=`head $source_path/QEMU_VERSION`
+ echo "VERSION=$qemu_version" >>$config_host_mak
+ echo "PKGVERSION=$pkgversion" >>$config_host_mak
+ echo "SRC_PATH=$source_path" >> $config_host_mak
