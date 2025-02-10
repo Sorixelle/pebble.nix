@@ -39,7 +39,7 @@ in stdenv.mkDerivation rec {
 
   buildInputs = [ glib pixman SDL2 zlib ] ++ darwinDeps;
 
-  patches = [ ./memfd-fix.patch ./stm32-includes.patch ./version-file-rename.patch ] ++ linuxPatches;
+  patches = [ ./apple-silicon-jit-write-protect.patch ./memfd-fix.patch ./stm32-includes.patch ./version-file-rename.patch ] ++ linuxPatches;
 
   configureFlags = [
     "--with-coroutine=gthread"
