@@ -71,3 +71,41 @@ index 84641df..5e1c86c 100644
  #undef COMPILER
  #include "src/v8.h"
  #include "src/ast.h"
+diff --git a/src/a64/cpu-a64.cc b/src/a64/cpu-a64.cc
+index 6dd5e52ae20..5ffbc0cd2ec 100644
+--- a/v8-source/src/a64/cpu-a64.cc
++++ b/v8-source/src/a64/cpu-a64.cc
+@@ -34,6 +34,10 @@
+ #include "a64/cpu-a64.h"
+ #include "a64/utils-a64.h"
+ 
++#if V8_OS_MACOSX
++#include <sys/sysctl.h>
++#endif
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -140,6 +144,14 @@ void CPU::FlushICache(void* address, size_t length) {
+ 
+ 
+ void CpuFeatures::Probe() {
++#ifdef V8_OS_MACOSX
++  // macOS doesn't support reading the CTR_EL0 reigster, so we need to pull information
++  // about the cache line size from sysctl instead.
++  size_t dcache_buf_size = sizeof(dcache_line_size_);
++  size_t icache_buf_size = sizeof(icache_line_size_);
++  sysctlbyname("hw.l1dcachesize", &dcache_line_size_, &dcache_buf_size, NULL, 0);
++  sysctlbyname("hw.l1icachesize", &icache_line_size_, &icache_buf_size, NULL, 0);
++#else
+   // Compute I and D cache line size. The cache type register holds
+   // information about the caches.
+   uint32_t cache_type_register = GetCacheType();
+@@ -158,6 +170,7 @@ void CpuFeatures::Probe() {
+ 
+   dcache_line_size_ = 1 << dcache_line_size_power_of_two;
+   icache_line_size_ = 1 << icache_line_size_power_of_two;
++#endif
+ 
+   // AArch64 has no configuration options, no further probing is required.
+   supported_ = 0;
