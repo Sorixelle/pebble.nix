@@ -28,23 +28,39 @@ diff --git a/include/qemu/osdep.h b/include/qemu/osdep.h
 index 84e84ac70..187de3553 100644
 --- a/include/qemu/osdep.h
 +++ b/include/qemu/osdep.h
-@@ -69,6 +69,10 @@
+@@ -69,6 +69,11 @@
  #include "sysemu/os-posix.h"
  #endif
  
 +#ifdef CONFIG_DARWIN
 +#include <AvailabilityMacros.h>
++#include <pthread.h>
 +#endif
 +
  #include "qapi/error.h"
  
  #if defined(CONFIG_SOLARIS) && CONFIG_SOLARIS_VERSION < 10
-@@ -315,4 +319,7 @@ int qemu_read_password(char *buf, int buf_size);
+@@ -315,4 +319,22 @@ int qemu_read_password(char *buf, int buf_size);
   */
  pid_t qemu_fork(Error **errp);
  
-+static inline void qemu_thread_jit_execute(void);
-+static inline void qemu_thread_jit_write(void);
++#if defined(CONFIG_DARWIN) && defined(__aarch64__)
++static inline void qemu_thread_jit_execute(void)
++{
++    if (__builtin_available(macOS 11.0, *)) {
++        pthread_jit_write_protect_np(true);
++    }
++}
++static inline void qemu_thread_jit_write(void)
++{
++    if (__builtin_available(macOS 11.0, *)) {
++        pthread_jit_write_protect_np(false);
++    }
++}
++#else
++static inline void qemu_thread_jit_execute(void) {}
++static inline void qemu_thread_jit_write(void) {}
++#endif
 +
  #endif
 diff --git a/tcg/tcg.c b/tcg/tcg.c
@@ -104,29 +120,3 @@ index 042a8576a..7ae7efcef 100644
      phys_pc = get_page_addr_code(env, pc);
      if (use_icount && !(cflags & CF_IGNORE_ICOUNT)) {
          cflags |= CF_USE_ICOUNT;
-diff --git a/util/osdep.c b/util/osdep.c
-index 534b51147..8bc27795f 100644
---- a/util/osdep.c
-+++ b/util/osdep.c
-@@ -435,3 +435,21 @@ writev(int fd, const struct iovec *iov, int iov_cnt)
-     return readv_writev(fd, iov, iov_cnt, true);
- }
- #endif
-+
-+#if defined(CONFIG_DARWIN) && defined(__aarch64__)
-+static inline void qemu_thread_jit_execute(void)
-+{
-+    if (__builtin_available(macOS 11.0, *)) {
-+        pthread_jit_write_protect_np(true);
-+    }
-+}
-+static inline void qemu_thread_jit_write(void)
-+{
-+    if (__builtin_available(macOS 11.0, *)) {
-+        pthread_jit_write_protect_np(false);
-+    }
-+}
-+#else
-+static inline void qemu_thread_jit_execute() {}
-+static inline void qemu_thread_jit_write() {}
-+#endif
