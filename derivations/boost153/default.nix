@@ -44,7 +44,7 @@ let
   else if enableExceptions then
     ''cflags=-fexceptions cxxflags="-std=c++11${silenceClangError}"''
   else
-    ''cxxflags=-"std=c++11${silenceClangError}"'';
+    ''cxxflags="-std=c++11${silenceClangError}"'';
 
   b2Args = concatStringsSep " " ([
     "-j$NIX_BUILD_CORES"
