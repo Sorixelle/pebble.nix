@@ -1,0 +1,656 @@
+diff --git a/src/a64/assembler-a64-inl.h b/src/a64/assembler-a64-inl.h
+index e68dee07382..c8984795a28 100644
+--- a/v8-source/src/a64/assembler-a64-inl.h
++++ b/v8-source/src/a64/assembler-a64-inl.h
+@@ -32,6 +32,7 @@
+ #include "cpu.h"
+ #include "debug.h"
+ 
++#include <pthread.h>
+ 
+ namespace v8 {
+ namespace internal {
+@@ -618,7 +619,13 @@ void Assembler::deserialization_set_special_target_at(
+ 
+ 
+ void Assembler::set_target_address_at(Address pc, Address target) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+   Memory::Address_at(target_pointer_address_at(pc)) = target;
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+   // Intuitively, we would think it is necessary to always flush the
+   // instruction cache after patching a target address in the code as follows:
+   //   CPU::FlushICache(pc, sizeof(target));
+diff --git a/src/a64/assembler-a64.h b/src/a64/assembler-a64.h
+index a2c93df2ae2..a6e0e38bd86 100644
+--- a/v8-source/src/a64/assembler-a64.h
++++ b/v8-source/src/a64/assembler-a64.h
+@@ -1883,9 +1883,15 @@ class Assembler : public AssemblerBase {
+     STATIC_ASSERT(sizeof(instruction) == kInstructionSize);
+     ASSERT((pc_ + sizeof(instruction)) <= (buffer_ + buffer_size_));
+ 
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+     memcpy(pc_, &instruction, sizeof(instruction));
+     pc_ += sizeof(instruction);
+     CheckBuffer();
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+   }
+ 
+   // Emit data inline in the instruction stream.
+@@ -1895,9 +1901,15 @@ class Assembler : public AssemblerBase {
+ 
+     // TODO(all): Somehow register we have some data here. Then we can
+     // disassemble it correctly.
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+     memcpy(pc_, data, size);
+     pc_ += size;
+     CheckBuffer();
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+   }
+ 
+   void GrowBuffer();
+diff --git a/src/execution.cc b/src/execution.cc
+index 690a4e3f4e6..5b9809e2bb7 100644
+--- a/v8-source/src/execution.cc
++++ b/v8-source/src/execution.cc
+@@ -40,6 +40,8 @@
+ #include "v8threads.h"
+ #include "vm-state-inl.h"
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -73,6 +75,10 @@ static Handle<Object> Invoke(bool is_construct,
+                              int argc,
+                              Handle<Object> args[],
+                              bool* has_pending_exception) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
++
+   Isolate* isolate = function->GetIsolate();
+ 
+   // Entering JavaScript.
+diff --git a/src/heap-inl.h b/src/heap-inl.h
+index a45e3ab9d9c..47521f11c5f 100644
+--- a/v8-source/src/heap-inl.h
++++ b/v8-source/src/heap-inl.h
+@@ -40,6 +40,8 @@
+ #include "store-buffer.h"
+ #include "store-buffer-inl.h"
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -553,9 +555,16 @@ void Heap::ScavengeObject(HeapObject** p, HeapObject* object) {
+ bool Heap::CollectGarbage(AllocationSpace space,
+                           const char* gc_reason,
+                           const v8::GCCallbackFlags callbackFlags) {
++
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+   const char* collector_reason = NULL;
+   GarbageCollector collector = SelectGarbageCollector(space, &collector_reason);
+   return CollectGarbage(collector, gc_reason, collector_reason, callbackFlags);
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+ }
+ 
+ 
+diff --git a/src/heap.cc b/src/heap.cc
+index 42e56ca1eb9..96ed3dae894 100644
+--- a/v8-source/src/heap.cc
++++ b/v8-source/src/heap.cc
+@@ -62,6 +62,8 @@
+ #include "mips/regexp-macro-assembler-mips.h"
+ #endif
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -4010,6 +4012,10 @@ MaybeObject* Heap::CreateCode(const CodeDesc& desc,
+                               bool immovable,
+                               bool crankshafted,
+                               int prologue_offset) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
++
+   // Allocate ByteArray before the Code object, so that we do not risk
+   // leaving uninitialized Code object (and breaking the heap).
+   ByteArray* reloc_info;
+@@ -4088,6 +4094,10 @@ MaybeObject* Heap::CreateCode(const CodeDesc& desc,
+     code->Verify();
+   }
+ #endif
++
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+   return code;
+ }
+ 
+diff --git a/src/incremental-marking.cc b/src/incremental-marking.cc
+index 1b9a28a5b7d..d2af2bb52f3 100644
+--- a/v8-source/src/incremental-marking.cc
++++ b/v8-source/src/incremental-marking.cc
+@@ -567,7 +567,8 @@ void IncrementalMarking::UncommitMarkingDeque() {
+   if (state_ == STOPPED && marking_deque_memory_committed_) {
+     bool success = marking_deque_memory_->Uncommit(
+         reinterpret_cast<Address>(marking_deque_memory_->address()),
+-        marking_deque_memory_->size());
++        marking_deque_memory_->size(),
++        false);  // Not executable.
+     CHECK(success);
+     marking_deque_memory_committed_ = false;
+   }
+diff --git a/src/mark-compact.cc b/src/mark-compact.cc
+index f5504478036..e5ee97aac36 100644
+--- a/v8-source/src/mark-compact.cc
++++ b/v8-source/src/mark-compact.cc
+@@ -43,6 +43,8 @@
+ #include "stub-cache.h"
+ #include "sweeper-thread.h"
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -3250,6 +3252,9 @@ static void SweepPrecisely(PagedSpace* space,
+     MarkBit::CellType* cell = it.CurrentCell();
+     int live_objects = MarkWordToObjectStarts(*cell, offsets);
+     int live_index = 0;
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+     for ( ; live_objects != 0; live_objects--) {
+       Address free_end = cell_base + offsets[live_index++] * kPointerSize;
+       if (free_end != free_start) {
+@@ -3286,6 +3291,10 @@ static void SweepPrecisely(PagedSpace* space,
+     // Clear marking bits for current cell.
+     *cell = 0;
+   }
++
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+   if (free_start != p->area_end()) {
+     if (free_space_mode == ZAP_FREE_SPACE) {
+       memset(free_start, 0xcc, static_cast<int>(p->area_end() - free_start));
+@@ -3297,6 +3306,11 @@ static void SweepPrecisely(PagedSpace* space,
+     }
+ #endif
+   }
++
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
++
+   p->ResetLiveBytes();
+   if (FLAG_print_cumulative_gc_stat) {
+     space->heap()->AddSweepingTime(OS::TimeCurrentMillis() - start_time);
+diff --git a/src/objects-inl.h b/src/objects-inl.h
+index 15d9b3750ed..b26cd23c527 100644
+--- a/v8-source/src/objects-inl.h
++++ b/v8-source/src/objects-inl.h
+@@ -51,6 +51,8 @@
+ #include "transitions-inl.h"
+ #include "objects-visiting.h"
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -1071,6 +1073,14 @@ MaybeObject* Object::GetProperty(Name* key, PropertyAttributes* attributes) {
+   return GetPropertyWithReceiver(this, key, attributes);
+ }
+ 
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  #define DISABLE_JIT_WRITE_PROTECT(code) \
++    pthread_jit_write_protect_np(false);  \
++    code;                                  \
++    pthread_jit_write_protect_np(true);
++#else
++  #define DISABLE_JIT_WRITE_PROTECT(code) code
++#endif
+ 
+ #define FIELD_ADDR(p, offset) \
+   (reinterpret_cast<byte*>(p) + offset - kHeapObjectTag)
+@@ -1079,7 +1089,7 @@ MaybeObject* Object::GetProperty(Name* key, PropertyAttributes* attributes) {
+   (*reinterpret_cast<Object**>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_FIELD(p, offset, value) \
+-  (*reinterpret_cast<Object**>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<Object**>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define WRITE_BARRIER(heap, object, offset, value)                      \
+   heap->incremental_marking()->RecordWrite(                             \
+@@ -1140,43 +1150,43 @@ MaybeObject* Object::GetProperty(Name* key, PropertyAttributes* attributes) {
+   (*reinterpret_cast<int*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_INT_FIELD(p, offset, value) \
+-  (*reinterpret_cast<int*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<int*>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define READ_INTPTR_FIELD(p, offset) \
+   (*reinterpret_cast<intptr_t*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_INTPTR_FIELD(p, offset, value) \
+-  (*reinterpret_cast<intptr_t*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<intptr_t*>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define READ_UINT32_FIELD(p, offset) \
+   (*reinterpret_cast<uint32_t*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_UINT32_FIELD(p, offset, value) \
+-  (*reinterpret_cast<uint32_t*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<uint32_t*>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define READ_INT32_FIELD(p, offset) \
+   (*reinterpret_cast<int32_t*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_INT32_FIELD(p, offset, value) \
+-  (*reinterpret_cast<int32_t*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<int32_t*>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define READ_INT64_FIELD(p, offset) \
+   (*reinterpret_cast<int64_t*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_INT64_FIELD(p, offset, value) \
+-  (*reinterpret_cast<int64_t*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<int64_t*>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define READ_SHORT_FIELD(p, offset) \
+   (*reinterpret_cast<uint16_t*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_SHORT_FIELD(p, offset, value) \
+-  (*reinterpret_cast<uint16_t*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<uint16_t*>(FIELD_ADDR(p, offset)) = value))
+ 
+ #define READ_BYTE_FIELD(p, offset) \
+   (*reinterpret_cast<byte*>(FIELD_ADDR(p, offset)))
+ 
+ #define WRITE_BYTE_FIELD(p, offset, value) \
+-  (*reinterpret_cast<byte*>(FIELD_ADDR(p, offset)) = value)
++  DISABLE_JIT_WRITE_PROTECT((*reinterpret_cast<byte*>(FIELD_ADDR(p, offset)) = value))
+ 
+ 
+ Object** HeapObject::RawField(HeapObject* obj, int byte_offset) {
+diff --git a/src/objects.cc b/src/objects.cc
+index 11c8ffcacdd..deb65f6171c 100644
+--- a/v8-source/src/objects.cc
++++ b/v8-source/src/objects.cc
+@@ -57,6 +57,8 @@
+ #include "disassembler.h"
+ #endif
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -10368,6 +10370,10 @@ void Code::Relocate(intptr_t delta) {
+ void Code::CopyFrom(const CodeDesc& desc) {
+   ASSERT(Marking::Color(this) == Marking::WHITE_OBJECT);
+ 
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
++
+   // copy code
+   CopyBytes(instruction_start(), desc.buffer,
+             static_cast<size_t>(desc.instr_size));
+@@ -10414,6 +10420,10 @@ void Code::CopyFrom(const CodeDesc& desc) {
+     }
+   }
+   CPU::FlushICache(instruction_start(), instruction_size());
++
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+ }
+ 
+ 
+diff --git a/src/platform-macos.cc b/src/platform-macos.cc
+index 683a04d3815..3992df77b0e 100644
+--- a/v8-source/src/platform-macos.cc
++++ b/v8-source/src/platform-macos.cc
+@@ -212,10 +212,15 @@ VirtualMemory::VirtualMemory(size_t size, size_t alignment)
+   ASSERT(IsAligned(alignment, static_cast<intptr_t>(OS::AllocateAlignment())));
+   size_t request_size = RoundUp(size + alignment,
+                                 static_cast<intptr_t>(OS::AllocateAlignment()));
++  int flags = MAP_PRIVATE | MAP_ANON | MAP_NORESERVE;
++#ifdef V8_TARGET_ARCH_A64
++  flags |= MAP_JIT;
++#endif
++
+   void* reservation = mmap(OS::GetRandomMmapAddr(),
+                            request_size,
+                            PROT_NONE,
+-                           MAP_PRIVATE | MAP_ANON | MAP_NORESERVE,
++                           flags,
+                            kMmapFd,
+                            kMmapFdOffset);
+   if (reservation == MAP_FAILED) return;
+@@ -272,8 +277,8 @@ bool VirtualMemory::Commit(void* address, size_t size, bool is_executable) {
+ }
+ 
+ 
+-bool VirtualMemory::Uncommit(void* address, size_t size) {
+-  return UncommitRegion(address, size);
++bool VirtualMemory::Uncommit(void* address, size_t size, bool is_executable) {
++  return UncommitRegion(address, size, is_executable);
+ }
+ 
+ 
+@@ -284,10 +289,15 @@ bool VirtualMemory::Guard(void* address) {
+ 
+ 
+ void* VirtualMemory::ReserveRegion(size_t size) {
++  int flags = MAP_PRIVATE | MAP_ANON | MAP_NORESERVE;
++#ifdef V8_TARGET_ARCH_A64
++  flags |= MAP_JIT;
++#endif
++
+   void* result = mmap(OS::GetRandomMmapAddr(),
+                       size,
+                       PROT_NONE,
+-                      MAP_PRIVATE | MAP_ANON | MAP_NORESERVE,
++                      flags,
+                       kMmapFd,
+                       kMmapFdOffset);
+ 
+@@ -301,25 +311,37 @@ bool VirtualMemory::CommitRegion(void* address,
+                                  size_t size,
+                                  bool is_executable) {
+   int prot = PROT_READ | PROT_WRITE | (is_executable ? PROT_EXEC : 0);
+-  if (MAP_FAILED == mmap(address,
+-                         size,
+-                         prot,
+-                         MAP_PRIVATE | MAP_ANON | MAP_FIXED,
+-                         kMmapFd,
+-                         kMmapFdOffset)) {
+-    return false;
++  int flags = MAP_PRIVATE | MAP_ANON | MAP_FIXED;
++
++#ifdef V8_TARGET_ARCH_A64
++  if (is_executable) {
++    return mprotect(address, size, prot) == 0;
++  } else {
++    return mmap(address, size, prot, flags, kMmapFd, kMmapFdOffset) != MAP_FAILED;
+   }
+-  return true;
++#else
++  return mmap(address, size, prot, flags, kMmapFd, kMmapFdOffset) != MAP_FAILED;
++#endif
+ }
+ 
+ 
+-bool VirtualMemory::UncommitRegion(void* address, size_t size) {
+-  return mmap(address,
+-              size,
+-              PROT_NONE,
++bool VirtualMemory::UncommitRegion(void* address, size_t size, bool is_executable) {
++#ifdef V8_TARGET_ARCH_A64
++  if (is_executable) {
++    if (madvise(address, size, MADV_FREE) != 0) {
++      return false;
++    }
++    return mprotect(address, size, PROT_NONE) == 0;
++  } else {
++    return mmap(address, size, PROT_NONE,
++                MAP_PRIVATE | MAP_ANON | MAP_NORESERVE | MAP_FIXED,
++                kMmapFd, kMmapFdOffset) != MAP_FAILED;
++  }
++#else
++  return mmap(address, size, PROT_NONE,
+               MAP_PRIVATE | MAP_ANON | MAP_NORESERVE | MAP_FIXED,
+-              kMmapFd,
+-              kMmapFdOffset) != MAP_FAILED;
++              kMmapFd, kMmapFdOffset) != MAP_FAILED;
++#endif
+ }
+ 
+ 
+diff --git a/src/platform.h b/src/platform.h
+index 8af90f1cb3e..108bb29ab7a 100644
+--- a/v8-source/src/platform.h
++++ b/v8-source/src/platform.h
+@@ -93,6 +93,8 @@ inline int lrint(double flt) {
+ 
+ #endif  // V8_LIBC_MSVCRT
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -390,10 +392,22 @@ class OS {
+ #else
+   // Copy memory area to disjoint memory area.
+   static void MemCopy(void* dest, const void* src, size_t size) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+     memcpy(dest, src, size);
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+   }
+   static void MemMove(void* dest, const void* src, size_t size) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+     memmove(dest, src, size);
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+   }
+   static const int kMinComplexMemCopy = 16 * kPointerSize;
+ #endif  // V8_TARGET_ARCH_IA32
+@@ -452,7 +466,7 @@ class VirtualMemory {
+   bool Commit(void* address, size_t size, bool is_executable);
+ 
+   // Uncommit real memory.  Returns whether the operation succeeded.
+-  bool Uncommit(void* address, size_t size);
++  bool Uncommit(void* address, size_t size, bool is_executable);
+ 
+   // Creates a single guard page at the given address.
+   bool Guard(void* address);
+@@ -482,7 +496,7 @@ class VirtualMemory {
+ 
+   static bool CommitRegion(void* base, size_t size, bool is_executable);
+ 
+-  static bool UncommitRegion(void* base, size_t size);
++  static bool UncommitRegion(void* base, size_t size, bool is_executable);
+ 
+   // Must be called with a base pointer that has been returned by ReserveRegion
+   // and the same size it was reserved with.
+diff --git a/src/spaces-inl.h b/src/spaces-inl.h
+index f3ed1bdfb24..c79ace0c507 100644
+--- a/v8-source/src/spaces-inl.h
++++ b/v8-source/src/spaces-inl.h
+@@ -33,6 +33,8 @@
+ #include "spaces.h"
+ #include "v8memory.h"
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -164,6 +166,9 @@ Page* Page::Initialize(Heap* heap,
+                        MemoryChunk* chunk,
+                        Executability executable,
+                        PagedSpace* owner) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+   Page* page = reinterpret_cast<Page*>(chunk);
+   ASSERT(page->area_size() <= kMaxRegularHeapObjectSize);
+   ASSERT(chunk->owner() == owner);
+@@ -171,6 +176,9 @@ Page* Page::Initialize(Heap* heap,
+   owner->Free(page->area_start(), page->area_size());
+ 
+   heap->incremental_marking()->SetOldSpacePageFlags(chunk);
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+ 
+   return page;
+ }
+diff --git a/src/spaces.cc b/src/spaces.cc
+index cfb70b8fe01..4f1d9c4f1f5 100644
+--- a/v8-source/src/spaces.cc
++++ b/v8-source/src/spaces.cc
+@@ -32,6 +32,8 @@
+ #include "msan.h"
+ #include "platform.h"
+ 
++#include <pthread.h>
++
+ namespace v8 {
+ namespace internal {
+ 
+@@ -251,14 +253,14 @@ bool CodeRange::CommitRawMemory(Address start, size_t length) {
+ 
+ 
+ bool CodeRange::UncommitRawMemory(Address start, size_t length) {
+-  return code_range_->Uncommit(start, length);
++  return code_range_->Uncommit(start, length, EXECUTABLE);
+ }
+ 
+ 
+ void CodeRange::FreeRawMemory(Address address, size_t length) {
+   ASSERT(IsAddressAligned(address, MemoryChunk::kAlignment));
+   free_list_.Add(FreeBlock(address, length));
+-  code_range_->Uncommit(address, length);
++  code_range_->Uncommit(address, length, EXECUTABLE);
+ }
+ 
+ 
+@@ -546,7 +548,8 @@ bool MemoryChunk::CommitArea(size_t requested) {
+     size_t length = committed_size - commit_size;
+     Address start = address() + committed_size + guard_size - length;
+     if (reservation_.IsReserved()) {
+-      if (!reservation_.Uncommit(start, length)) return false;
++      if (!reservation_.Uncommit(start, length,
++                                 IsFlagSet(IS_EXECUTABLE))) return false;
+     } else {
+       CodeRange* code_range = heap_->isolate()->code_range();
+       ASSERT(code_range->exists() && IsFlagSet(IS_EXECUTABLE));
+@@ -787,17 +790,25 @@ bool MemoryAllocator::CommitBlock(Address start,
+ }
+ 
+ 
+-bool MemoryAllocator::UncommitBlock(Address start, size_t size) {
+-  if (!VirtualMemory::UncommitRegion(start, size)) return false;
++bool MemoryAllocator::UncommitBlock(Address start, size_t size, Executability executable) {
++  if (!VirtualMemory::UncommitRegion(start, size, executable)) return false;
+   isolate_->counters()->memory_allocated()->Decrement(static_cast<int>(size));
+   return true;
+ }
+ 
+ 
+ void MemoryAllocator::ZapBlock(Address start, size_t size) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
++
+   for (size_t s = 0; s + kPointerSize <= size; s += kPointerSize) {
+     Memory::Address_at(start + s) = kZapValue;
+   }
++
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+ }
+ 
+ 
+@@ -1562,7 +1573,7 @@ bool SemiSpace::Commit() {
+ bool SemiSpace::Uncommit() {
+   ASSERT(is_committed());
+   Address start = start_ + maximum_capacity_ - capacity_;
+-  if (!heap()->isolate()->memory_allocator()->UncommitBlock(start, capacity_)) {
++  if (!heap()->isolate()->memory_allocator()->UncommitBlock(start, capacity_, executable())) {
+     return false;
+   }
+   anchor()->set_next_page(anchor());
+@@ -1629,7 +1640,7 @@ bool SemiSpace::ShrinkTo(int new_capacity) {
+     ASSERT(IsAligned(delta, OS::AllocateAlignment()));
+ 
+     MemoryAllocator* allocator = heap()->isolate()->memory_allocator();
+-    if (!allocator->UncommitBlock(start_ + new_capacity, delta)) {
++    if (!allocator->UncommitBlock(start_ + new_capacity, delta, executable())) {
+       return false;
+     }
+ 
+@@ -2062,6 +2073,9 @@ void FreeListNode::set_next(FreeListNode* next) {
+   // While we are booting the VM the free space map will actually be null.  So
+   // we have to make sure that we don't try to use it for anything at that
+   // stage.
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+   if (map() == GetHeap()->raw_unchecked_free_space_map()) {
+     ASSERT(map() == NULL || Size() >= kNextOffset + kPointerSize);
+     Memory::Address_at(address() + kNextOffset) =
+@@ -2070,6 +2084,9 @@ void FreeListNode::set_next(FreeListNode* next) {
+     Memory::Address_at(address() + kPointerSize) =
+         reinterpret_cast<Address>(next);
+   }
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+ }
+ 
+ 
+@@ -2401,8 +2418,14 @@ HeapObject* FreeList::Allocate(int size_in_bytes) {
+ 
+ #ifdef DEBUG
+   for (int i = 0; i < size_in_bytes / kPointerSize; i++) {
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(false);
++#endif
+     reinterpret_cast<Object**>(new_node->address())[i] =
+         Smi::FromInt(kCodeZapValue);
++#if defined(__APPLE__) && defined(V8_TARGET_ARCH_A64)
++  pthread_jit_write_protect_np(true);
++#endif
+   }
+ #endif
+ 
+diff --git a/src/spaces.h b/src/spaces.h
+index 770b88a9fba..4f59c2ec518 100644
+--- a/v8-source/src/spaces.h
++++ b/v8-source/src/spaces.h
+@@ -1154,7 +1154,7 @@ class MemoryAllocator {
+   // start is not NULL, the size is greater than zero, and the
+   // block is contained in the initial chunk.  Returns true if it succeeded
+   // and false otherwise.
+-  bool UncommitBlock(Address start, size_t size);
++  bool UncommitBlock(Address start, size_t size, Executability executable);
+ 
+   // Zaps a contiguous block of memory [start..(start+size)[ thus
+   // filling it up with a recognizable non-NULL bit pattern.

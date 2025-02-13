@@ -57,6 +57,8 @@ toPythonModule (stdenv.mkDerivation rec {
 
   LANG = "${if stdenv.isDarwin then "en_US" else "C"}.UTF-8";
 
+  CXX_host = lib.optionalString stdenv.cc.isClang "clang++";
+  LINK = lib.optionalString stdenv.cc.isClang "clang++";
   CXXFLAGS = lib.optionalString stdenv.isDarwin
     "-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.8";
   LDFLAGS =
@@ -80,6 +82,7 @@ toPythonModule (stdenv.mkDerivation rec {
 
   patches = [
     ./aarch64-darwin-support.patch
+    ./aarch64-darwin-jit-memory.patch
     ./fix-CreateHandle-scope.patch
     ./fix-extension-build.patch
     ./fix-gyp-darwin.patch
