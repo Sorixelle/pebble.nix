@@ -77,7 +77,7 @@ toPythonModule (stdenv.mkDerivation rec {
 
   prePatch = ''
     # make my patching life easier
-    dos2unix src/AST.h
+    dos2unix src/*
   '';
 
   patches = [
@@ -87,13 +87,18 @@ toPythonModule (stdenv.mkDerivation rec {
     ./fix-extension-build.patch
     ./fix-gyp-darwin.patch
     ./fix-v8-segfault.patch
+    ./pyv8-debug-build-fixes.patch
   ];
 
   postPatch = ''
     substituteInPlace $V8_HOME/build/gyp/gyp --replace "bash" "sh"
+    # TODO: figure out why release builds don't work, and then make this configurable
+    substituteInPlace setup.py --replace "DEBUG = False" "DEBUG = True"
   '' + lib.optionalString stdenv.cc.isClang ''
     substituteInPlace $V8_HOME/Makefile --replace "g++" "clang++"
   '';
+
+  dontStrip = true;
 
   postFixup = ''
     wrapPythonPrograms

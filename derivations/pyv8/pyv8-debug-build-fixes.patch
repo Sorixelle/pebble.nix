@@ -1,0 +1,61 @@
+diff --git a/setup.py b/setup.py
+index 051a321..0e47eee 100644
+--- a/setup.py
++++ b/setup.py
+@@ -117,6 +118,12 @@ macros = [
+ if DEBUG:
+     macros += [
+         ("V8_ENABLE_CHECKS", None),
++        ("DEBUG", None),
++    ]
++
++if V8_VERIFY_HEAP:
++    macros += [
++        ("VERIFY_HEAP", None),
+     ]
+ 
+ if V8_NATIVE_REGEXP:
+@@ -143,8 +150,6 @@ boost_libs = ['boost_python', 'boost_thread', 'boost_system']
+ if BOOST_MT:
+     boost_libs = [lib + '-mt' for lib in boost_libs]
+ 
+-if DEBUG:
+-    boost_libs = [lib + '-d' for lib in boost_libs]
+ 
+ include_dirs = [
+     os.path.join(V8_HOME, 'include'),
+diff --git a/src/Engine.cpp b/src/Engine.cpp
+index 9a2f147..636f660 100644
+--- a/src/Engine.cpp
++++ b/src/Engine.cpp
+@@ -516,7 +516,7 @@ void CScript::visit(py::object handler, v8i::LanguageMode mode) const
+ {
+   v8::HandleScope handle_scope(m_isolate);
+ 
+-  v8i::Handle<v8i::Object> obj = v8::Utils::OpenHandle(*Source());
++  v8i::Handle<v8i::String> obj = v8::Utils::OpenHandle(*Source());
+ 
+   v8i::Handle<v8i::Script> script(v8i::Isolate::Current()->factory()->NewScript(obj));
+ 
+diff --git a/src/Wrapper.cpp b/src/Wrapper.cpp
+index 7dd4264..cd56afe 100644
+--- a/src/Wrapper.cpp
++++ b/src/Wrapper.cpp
+@@ -1411,7 +1411,7 @@ py::object CJavascriptArray::SetItem(py::object key, py::object value)
+       {
+         if (itemSize != sliceLen)
+         {
+-          v8i::Handle<v8i::JSArray> array = v8::Utils::OpenHandle(*Object());
++          v8i::Handle<v8i::JSArray> array = v8::Utils::OpenHandle(v8::Array::Cast(*Object()));
+ 
+           array->set_length(v8i::Smi::FromInt(arrayLen - sliceLen + itemSize));
+ 
+@@ -1489,7 +1489,7 @@ py::object CJavascriptArray::DelItem(py::object key)
+         Object()->Delete((uint32_t)idx);
+       }
+ 
+-      v8i::Handle<v8i::JSArray> array = v8::Utils::OpenHandle(*Object());
++      v8i::Handle<v8i::JSArray> array = v8::Utils::OpenHandle(v8::Array::Cast(*Object()));
+ 
+       array->set_length(v8i::Smi::FromInt(arrayLen - sliceLen));
+     }
