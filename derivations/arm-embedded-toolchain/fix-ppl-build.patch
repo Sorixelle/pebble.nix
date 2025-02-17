@@ -1,0 +1,275 @@
+diff --git a/src/ppl-0.11/Watchdog/configure.ac b/src/ppl-0.11/Watchdog/configure.ac
+index 278a32d7e..d13755906 100644
+--- a/src/ppl-0.11/Watchdog/configure.ac
++++ b/src/ppl-0.11/Watchdog/configure.ac
+@@ -39,7 +39,7 @@ AC_CONFIG_MACRO_DIR([m4])
+ AC_CANONICAL_HOST
+ 
+ # Use Automake.
+-AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 dist-zip dist-lzma silent-rules 1.11])
++AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 dist-zip silent-rules 1.11])
+ AC_SUBST(VERSION)
+ 
+ # Generate a configuration header file.
+diff --git a/src/ppl-0.11/configure.ac b/src/ppl-0.11/configure.ac
+index e71ce8bac..3dce93b18 100644
+--- a/src/ppl-0.11/configure.ac
++++ b/src/ppl-0.11/configure.ac
+@@ -39,7 +39,7 @@ AC_CONFIG_MACRO_DIR([m4])
+ AC_CANONICAL_HOST
+ 
+ # Use Automake.
+-AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 dist-zip dist-lzma tar-ustar silent-rules 1.11])
++AM_INIT_AUTOMAKE([foreign no-define dist-bzip2 dist-zip tar-ustar silent-rules 1.11])
+ 
+ AC_SUBST(VERSION)
+ 
+diff --git a/src/ppl-0.11/demos/ppl_lcdd/ppl_lcdd.cc b/src/ppl-0.11/demos/ppl_lcdd/ppl_lcdd.cc
+index 844b5155f..6caa94527 100644
+--- a/src/ppl-0.11/demos/ppl_lcdd/ppl_lcdd.cc
++++ b/src/ppl-0.11/demos/ppl_lcdd/ppl_lcdd.cc
+@@ -221,7 +221,7 @@ std::istream* input_stream_p = 0;
+ 
+ void
+ set_input(const char* file_name) {
+-  if (input_stream_p && *input_stream_p != std::cin)
++  if (input_stream_p && input_stream_p != &std::cin)
+     delete input_stream_p;
+ 
+   if (file_name) {
+@@ -247,7 +247,7 @@ std::ostream* output_stream_p = 0;
+ 
+ void
+ set_output(const char* file_name) {
+-  if (output_stream_p && *output_stream_p != std::cout)
++  if (output_stream_p && output_stream_p != &std::cout)
+     delete output_stream_p;
+ 
+   if (file_name) {
+@@ -495,7 +495,7 @@ template <typename T>
+ bool
+ guarded_read(std::istream& in, T& x) {
+   try {
+-    return in >> x;
++    return static_cast<bool>(in >> x);
+   }
+   catch (...) {
+     return false;
+@@ -507,7 +507,7 @@ void
+ guarded_write(std::ostream& out, const T& x) {
+   bool succeeded = false;
+   try {
+-    succeeded = out << x;
++    succeeded = static_cast<bool>(out << x);
+   }
+   catch (...) {
+   }
+@@ -521,7 +521,7 @@ void
+ guarded_write(std::ostream& out, const pkint_t& x) {
+   bool succeeded = false;
+   try {
+-    succeeded = out << x.rep;
++    succeeded = static_cast<bool>(out << x.rep);
+   }
+   catch (...) {
+   }
+@@ -1151,7 +1151,7 @@ write_polyhedron(std::ostream& out,
+   // Flush `out'.
+   bool flush_succeeded = false;
+   try {
+-    flush_succeeded = out.flush();
++    flush_succeeded = static_cast<bool>(out.flush());
+   }
+   catch (...) {
+   }
+diff --git a/src/ppl-0.11/demos/ppl_pips/ppl_pips.cc b/src/ppl-0.11/demos/ppl_pips/ppl_pips.cc
+index 46a4fe91b..08c8e32b1 100644
+--- a/src/ppl-0.11/demos/ppl_pips/ppl_pips.cc
++++ b/src/ppl-0.11/demos/ppl_pips/ppl_pips.cc
+@@ -541,7 +541,7 @@ std::istream* input_stream_p = 0;
+ 
+ void
+ set_input(const char* file_name) {
+-  if (input_stream_p && *input_stream_p != std::cin)
++  if (input_stream_p && input_stream_p != &std::cin)
+     delete input_stream_p;
+ 
+   if (file_name) {
+@@ -567,7 +567,7 @@ std::ostream* output_stream_p = 0;
+ 
+ void
+ set_output(const char* file_name) {
+-  if (output_stream_p && *output_stream_p != std::cout)
++  if (output_stream_p && output_stream_p != &std::cout)
+     delete output_stream_p;
+ 
+   if (file_name) {
+diff --git a/src/ppl-0.11/interfaces/Prolog/Ciao/Makefile.am b/src/ppl-0.11/interfaces/Prolog/Ciao/Makefile.am
+index 2c6431a85..1d201393e 100644
+--- a/src/ppl-0.11/interfaces/Prolog/Ciao/Makefile.am
++++ b/src/ppl-0.11/interfaces/Prolog/Ciao/Makefile.am
+@@ -169,7 +169,8 @@ $(NO_UNDEFINED_FLAG) \
+ -module \
+ -avoid-version
+ 
+-pkglib_DATA = ppl_ciao.po
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_ciao.po
+ 
+ ppl_ciao.pl: $(interface_generator_dependencies)
+ 	$(M4) --prefix-builtin -I../.. -I$(srcdir)/.. -I$(srcdir)/../.. \
+diff --git a/src/ppl-0.11/interfaces/Prolog/GNU/Makefile.am b/src/ppl-0.11/interfaces/Prolog/GNU/Makefile.am
+index 9f4981c12..f04de8328 100644
+--- a/src/ppl-0.11/interfaces/Prolog/GNU/Makefile.am
++++ b/src/ppl-0.11/interfaces/Prolog/GNU/Makefile.am
+@@ -168,7 +168,8 @@ ppl_gprolog.pl: $(interface_generator_dependencies)
+ 	$(M4) --prefix-builtin -I../.. -I$(srcdir)/.. -I$(srcdir)/../.. \
+            $(srcdir)/ppl_interface_generator_gprolog_pl.m4 > $@
+ 
+-pkglib_DATA = ppl_gprolog.pl
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_gprolog.pl
+ 
+ bin_PROGRAMS = ppl_gprolog
+ 
+diff --git a/src/ppl-0.11/interfaces/Prolog/SICStus/Makefile.am b/src/ppl-0.11/interfaces/Prolog/SICStus/Makefile.am
+index 06635db4d..147c57804 100644
+--- a/src/ppl-0.11/interfaces/Prolog/SICStus/Makefile.am
++++ b/src/ppl-0.11/interfaces/Prolog/SICStus/Makefile.am
+@@ -68,7 +68,8 @@ ppl_sicstus_SOURCES =
+ 
+ if ENABLE_SHARED
+ 
+-pkglib_DATA = ppl_sicstus.pl ppl_sicstus.s.o
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_sicstus.pl ppl_sicstus.s.o
+ 
+ ppl_sicstus.so: ppl_sicstus.pl $(top_builddir)/src/libppl.la $(WATCHDOG_LIBRARY) libppl_sicstus.la
+ 	$(LIBTOOL) --mode=link --tag=CXX \
+@@ -86,7 +87,8 @@ install-data-local: ppl_sicstus.so
+ 
+ else !ENABLE_SHARED
+ 
+-pkglib_DATA = ppl_sicstus.pl
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_sicstus.pl
+ 
+ endif !ENABLE_SHARED
+ 
+diff --git a/src/ppl-0.11/interfaces/Prolog/SWI/Makefile.am b/src/ppl-0.11/interfaces/Prolog/SWI/Makefile.am
+index 6ad390755..46f494655 100644
+--- a/src/ppl-0.11/interfaces/Prolog/SWI/Makefile.am
++++ b/src/ppl-0.11/interfaces/Prolog/SWI/Makefile.am
+@@ -188,7 +188,8 @@ $(NO_UNDEFINED_FLAG) \
+ bin_PROGRAMS = ppl_pl
+ ppl_pl_SOURCES = ppl_pl.cc
+ 
+-pkglib_DATA = ppl_swiprolog.pl
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_swiprolog.pl
+ 
+ CLPQ_TESTS_NONSTRICT = \
+ ack.clpq \
+diff --git a/src/ppl-0.11/interfaces/Prolog/XSB/Makefile.am b/src/ppl-0.11/interfaces/Prolog/XSB/Makefile.am
+index 43b49c42f..e86813cb9 100644
+--- a/src/ppl-0.11/interfaces/Prolog/XSB/Makefile.am
++++ b/src/ppl-0.11/interfaces/Prolog/XSB/Makefile.am
+@@ -187,7 +187,8 @@ $(NO_UNDEFINED_FLAG) \
+ -module \
+ -avoid-version
+ 
+-pkglib_DATA = ppl_xsb.xwam
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_xsb.xwam
+ 
+ ppl_xsb.xwam: ppl_xsb.H ppl_xsb.cc libppl_xsb.la
+ 	cp -f ppl_xsb.cc ppl_xsb.c
+diff --git a/src/ppl-0.11/interfaces/Prolog/YAP/Makefile.am b/src/ppl-0.11/interfaces/Prolog/YAP/Makefile.am
+index 875bae92e..ab080ba3c 100644
+--- a/src/ppl-0.11/interfaces/Prolog/YAP/Makefile.am
++++ b/src/ppl-0.11/interfaces/Prolog/YAP/Makefile.am
+@@ -178,7 +178,8 @@ $(NO_UNDEFINED_FLAG) \
+ -module \
+ -avoid-version
+ 
+-pkglib_DATA = ppl_yap.pl
++my_pkglibdir = $(pkglibdir)
++my_pkglib_DATA = ppl_yap.pl
+ 
+ CLPQ_TESTS_NONSTRICT = \
+ ack.clpq \
+diff --git a/src/ppl-0.11/m4/ac_check_gmp.m4 b/src/ppl-0.11/m4/ac_check_gmp.m4
+index 15acb182e..245a2386c 100644
+--- a/src/ppl-0.11/m4/ac_check_gmp.m4
++++ b/src/ppl-0.11/m4/ac_check_gmp.m4
+@@ -32,6 +32,18 @@ else
+   fi
+ fi
+ 
++AC_ARG_WITH(gmp-prefix,
++  AS_HELP_STRING([--with-gmp-prefix=DIR],
++                 [search for libgmp, libgmpxx in DIR/include and DIR/lib]),
++  gmp_prefix_dir=$with_gmp_prefix
++  if test -z "$with_libgmp_build"
++  then
++    CPPFLAGS="$CPPFLAGS -I$gmp_prefix_dir/include"
++    LDFLAGS="$LDFLAGS -L$gmp_prefix_dir/lib"
++  else
++    AC_MSG_ERROR([cannot use --with-gmp-build and --with-gmp-prefix together])
++  fi)
++
+ AC_ARG_WITH(gmp-build,
+   AS_HELP_STRING([--with-gmp-build=DIR],
+                  [use a non-installed build of GMP in DIR]),
+diff --git a/src/ppl-0.11/m4/ac_cxx_flexible_arrays.m4 b/src/ppl-0.11/m4/ac_cxx_flexible_arrays.m4
+index e556cef8b..2ce41faf7 100644
+--- a/src/ppl-0.11/m4/ac_cxx_flexible_arrays.m4
++++ b/src/ppl-0.11/m4/ac_cxx_flexible_arrays.m4
+@@ -128,7 +128,7 @@ main() {
+ 
+ if test x"$ac_cxx_supports_flexible_arrays" = xyes
+ then
+-  value=1
++  value=0 # broken on recent GCC
+ else
+   value=0
+ fi
+diff --git a/src/ppl-0.11/src/Checked_Number.templates.hh b/src/ppl-0.11/src/Checked_Number.templates.hh
+index 9f7193229..91592139e 100644
+--- a/src/ppl-0.11/src/Checked_Number.templates.hh
++++ b/src/ppl-0.11/src/Checked_Number.templates.hh
+@@ -56,7 +56,7 @@ typename Enable_If<Is_Native_Or_Checked<T>::value, bool>::type
+ ascii_load(std::istream& s, T& t) {
+   if (std::numeric_limits<T>::is_exact)
+     // An exact datatype: input from pretty printed version is accurate.
+-    return s >> t;
++    return static_cast<bool>(s >> t);
+   else {
+     // An inexact datatype (probably floating point):
+     // first load its hexadecimal representation ...
+diff --git a/src/ppl-0.11/src/Interval_Info.inlines.hh b/src/ppl-0.11/src/Interval_Info.inlines.hh
+index b6bc3949f..5ee66f41c 100644
+--- a/src/ppl-0.11/src/Interval_Info.inlines.hh
++++ b/src/ppl-0.11/src/Interval_Info.inlines.hh
+@@ -86,7 +86,7 @@ Interval_Info_Bitset<T, Policy>::ascii_load(std::istream& s) {
+   std::ios_base::fmtflags old = s.flags();
+   if (s >> std::hex >> bitset) {
+     s.flags(old);
+-    return s;
++    return static_cast<bool>(s);
+   }
+   else
+     return false;
+diff --git a/src/ppl-0.11/src/Row.cc b/src/ppl-0.11/src/Row.cc
+index b3f20ab17..770a118d2 100644
+--- a/src/ppl-0.11/src/Row.cc
++++ b/src/ppl-0.11/src/Row.cc
+@@ -153,7 +153,7 @@ PPL::Row::Flags::ascii_load(std::istream& s) {
+     return false;
+   s.width(sz);
+   std::istream::fmtflags f = s.setf(std::istream::hex);
+-  bool r = s >> bits;
++  bool r = static_cast<bool>(s >> bits);
+   s.flags(f);
+   return r;
+ }

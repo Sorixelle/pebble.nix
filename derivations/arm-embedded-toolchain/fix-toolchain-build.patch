@@ -1,0 +1,467 @@
+diff --git a/How-to-build-toolchain.pdf b/How-to-build-toolchain.pdf
+index efe9f90bc..c30b7515a 100644
+Binary files a/How-to-build-toolchain.pdf and b/How-to-build-toolchain.pdf differ
+diff --git a/build-common.sh b/build-common.sh
+index 38a01df18..f2894057c 100755
+--- a/build-common.sh
++++ b/build-common.sh
+@@ -88,6 +88,7 @@ clean_env () {
+             HOME|\
+             LD_LIBRARY_PATH|\
+             LOGNAME|\
++            NIX_*|\
+             PATH|\
+             PWD|\
+             SHELL|\
+@@ -148,6 +149,23 @@ saveenvvar () {
+     set -u
+ }
+ 
++savenix() {
++    set +u
++    if [ $stack_level -le 0 ]; then
++        error Must call saveenv before calling saveenvvar
++    fi
++    local var_list=`export|grep "^declare -x"|sed -e "s/declare -x //"|cut -d"=" -f1`
++    for var in $var_list ; do
++        case $var in
++            NIX_*)
++	    saveenvvar $var ""
++            ;;
++        *)
++            ;;
++        esac
++    done
++}
++
+ # Restore all variables that have been saved in current stack level
+ restoreenv () {
+     set +u
+@@ -329,8 +347,8 @@ BUGURL=""
+ # on Ubuntu and Mac OS X.
+ uname_string=`uname | sed 'y/LINUXDARWIN/linuxdarwin/'`
+ if [ "x$uname_string" == "xlinux" ] ; then
+-    BUILD=i686-linux-gnu
+-    HOST_NATIVE=i686-linux-gnu
++    BUILD=x86_64-linux-gnu
++    HOST_NATIVE=x86_64-linux-gnu
+     READLINK=readlink
+     JOBS=`grep ^processor /proc/cpuinfo|wc -l`
+     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm"
+diff --git a/build-toolchain.sh b/build-toolchain.sh
+index 52e7062c9..9153bccf1 100755
+--- a/build-toolchain.sh
++++ b/build-toolchain.sh
+@@ -111,7 +111,7 @@ echo Task [III-0] /$HOST_NATIVE/binutils/
+ rm -rf $BUILDDIR_NATIVE/binutils && mkdir -p $BUILDDIR_NATIVE/binutils
+ pushd $BUILDDIR_NATIVE/binutils
+ saveenv
+-saveenvvar CFLAGS "$ENV_CFLAGS"
++saveenvvar CFLAGS "$ENV_CFLAGS -Wno-error"
+ saveenvvar CPPFLAGS "$ENV_CPPFLAGS"
+ saveenvvar LDFLAGS "$ENV_LDFLAGS"
+ $SRCDIR/$BINUTILS/configure  \
+@@ -133,7 +133,7 @@ else
+     make -j$JOBS
+ fi
+ 
+-make install install-html install-pdf
++make install install-html # install-pdf
+ 
+ copy_dir $INSTALLDIR_NATIVE $BUILDDIR_NATIVE/target-libs
+ restoreenv
+@@ -146,6 +146,10 @@ popd
+ echo Task [III-1] /$HOST_NATIVE/gcc-first/
+ rm -rf $BUILDDIR_NATIVE/gcc-first && mkdir -p $BUILDDIR_NATIVE/gcc-first
+ pushd $BUILDDIR_NATIVE/gcc-first
++
++saveenv
++savenix
++
+ $SRCDIR/$GCC/configure --target=$TARGET \
+     --prefix=$INSTALLDIR_NATIVE \
+     --libexecdir=$INSTALLDIR_NATIVE/lib \
+@@ -180,6 +184,7 @@ make -j$JOBS all-gcc
+ 
+ make install-gcc
+ 
++restoreenv
+ popd
+ 
+ pushd $INSTALLDIR_NATIVE
+@@ -212,15 +217,15 @@ make -j$JOBS
+ 
+ make install
+ 
+-make pdf
+-mkdir -p $INSTALLDIR_NATIVE_DOC/pdf
+-cp $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libc/libc.pdf $INSTALLDIR_NATIVE_DOC/pdf/libc.pdf
+-cp $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libm/libm.pdf $INSTALLDIR_NATIVE_DOC/pdf/libm.pdf
++# make pdf
++# mkdir -p $INSTALLDIR_NATIVE_DOC/pdf
++# cp $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libc/libc.pdf $INSTALLDIR_NATIVE_DOC/pdf/libc.pdf
++# cp $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libm/libm.pdf $INSTALLDIR_NATIVE_DOC/pdf/libm.pdf
+ 
+-make html
+-mkdir -p $INSTALLDIR_NATIVE_DOC/html
+-copy_dir $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libc/libc.html $INSTALLDIR_NATIVE_DOC/html/libc
+-copy_dir $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libm/libm.html $INSTALLDIR_NATIVE_DOC/html/libm
++# make html
++# mkdir -p $INSTALLDIR_NATIVE_DOC/html
++# copy_dir $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libc/libc.html $INSTALLDIR_NATIVE_DOC/html/libc
++# copy_dir $BUILDDIR_NATIVE/newlib/arm-none-eabi/newlib/libm/libm.html $INSTALLDIR_NATIVE_DOC/html/libm
+ 
+ popd
+ restoreenv
+@@ -253,6 +258,9 @@ ln -s . $INSTALLDIR_NATIVE/arm-none-eabi/usr
+ rm -rf $BUILDDIR_NATIVE/gcc-final && mkdir -p $BUILDDIR_NATIVE/gcc-final
+ pushd $BUILDDIR_NATIVE/gcc-final
+ 
++saveenv
++savenix
++
+ $SRCDIR/$GCC/configure --target=$TARGET \
+     --prefix=$INSTALLDIR_NATIVE \
+     --libexecdir=$INSTALLDIR_NATIVE/lib \
+@@ -294,7 +302,7 @@ else
+   make -j$JOBS INHIBIT_LIBC_CFLAGS="-DUSE_TM_CLONE_REGISTRY=0"
+ fi
+ 
+-make install install-html install-pdf
++make install install-html # install-pdf
+ 
+ pushd $INSTALLDIR_NATIVE
+ rm -rf bin/arm-none-eabi-gccbug
+@@ -347,13 +355,15 @@ make install
+ copy_multi_libs src_prefix="$BUILDDIR_NATIVE/target-libs/arm-none-eabi/lib" \
+                 dst_prefix="$INSTALLDIR_NATIVE/arm-none-eabi/lib"           \
+                 target_gcc="$BUILDDIR_NATIVE/target-libs/bin/arm-none-eabi-gcc"
++
++restoreenv
+ popd
+ 
+ echo Task [III-6] /$HOST_NATIVE/gdb/
+ rm -rf $BUILDDIR_NATIVE/gdb && mkdir -p $BUILDDIR_NATIVE/gdb
+ pushd $BUILDDIR_NATIVE/gdb
+ saveenv
+-saveenvvar CFLAGS "$ENV_CFLAGS"
++saveenvvar CFLAGS "$ENV_CFLAGS -Wno-error"
+ saveenvvar CPPFLAGS "$ENV_CPPFLAGS"
+ saveenvvar LDFLAGS "$ENV_LDFLAGS"
+ $SRCDIR/$GDB/configure  \
+@@ -378,26 +388,27 @@ else
+     make -j$JOBS
+ fi
+ 
+-make install install-html install-pdf
++make install # install-html install-pdf
+ 
+ restoreenv
+ popd
+ 
+-if [ "x$is_ppa_release" != "xyes" ]; then
+-echo TASK [III-7] /$HOST_NATIVE/build-manual
+-rm -rf $BUILDDIR_NATIVE/build-manual && mkdir -p $BUILDDIR_NATIVE/build-manual
+-pushd $BUILDDIR_NATIVE/build-manual
+-cp -r $SRCDIR/$BUILD_MANUAL/* .
+-echo "@set VERSION_PACKAGE ($PKGVERSION)" > version.texi
+-echo "@set CURRENT_YEAR  $release_year" >> version.texi
+-echo "@set CURRENT_MONTH $release_month" >> version.texi
+-echo "@set PKG_NAME $PACKAGE_NAME" >> version.texi
+-make clean
+-make
+-rm -rf $ROOT/How-to-build-toolchain.pdf
+-cp How-to-build-toolchain.pdf $ROOT
+-popd
+-fi
++# doesn't build
++# if [ "x$is_ppa_release" != "xyes" ]; then
++# echo TASK [III-7] /$HOST_NATIVE/build-manual
++# rm -rf $BUILDDIR_NATIVE/build-manual && mkdir -p $BUILDDIR_NATIVE/build-manual
++# pushd $BUILDDIR_NATIVE/build-manual
++# cp -r $SRCDIR/$BUILD_MANUAL/* .
++# echo "@set VERSION_PACKAGE ($PKGVERSION)" > version.texi
++# echo "@set CURRENT_YEAR  $release_year" >> version.texi
++# echo "@set CURRENT_MONTH $release_month" >> version.texi
++# echo "@set PKG_NAME $PACKAGE_NAME" >> version.texi
++# make clean
++# make
++# rm -rf $ROOT/How-to-build-toolchain.pdf
++# cp How-to-build-toolchain.pdf $ROOT
++# popd
++# fi
+ 
+ echo Task [III-8] /$HOST_NATIVE/pretidy/
+ rm -rf $INSTALLDIR_NATIVE/lib/libiberty.a
+@@ -415,7 +426,7 @@ if [ "x$DEBUG_BUILD_OPTIONS" = "xno" ] ; then
+         strip_binary strip $bin
+     done
+ 
+-    STRIP_BINARIES=`find $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/$GCC_VER/ -maxdepth 1 -name \* -perm +111 -and ! -type d`
++    STRIP_BINARIES=`find $INSTALLDIR_NATIVE/lib/gcc/arm-none-eabi/$GCC_VER/ -maxdepth 1 -name \* -perm /111 -and ! -type d`
+     for bin in $STRIP_BINARIES ; do
+         strip_binary strip $bin
+     done
+diff --git a/src/binutils/binutils/doc/binutils.texi b/src/binutils/binutils/doc/binutils.texi
+index 35ccb87a1..c4b298ebd 100644
+--- a/src/binutils/binutils/doc/binutils.texi
++++ b/src/binutils/binutils/doc/binutils.texi
+@@ -4269,7 +4269,7 @@ equivalent. At least one of the @option{--output-mach},
+ 
+ @table @env
+ 
+-@itemx --input-mach=@var{machine}
++@item --input-mach=@var{machine}
+ Set the matching input ELF machine type to @var{machine}.  If
+ @option{--input-mach} isn't specified, it will match any ELF
+ machine types.
+@@ -4277,21 +4277,21 @@ machine types.
+ The supported ELF machine types are, @var{L1OM}, @var{K1OM} and
+ @var{x86-64}.
+ 
+-@itemx --output-mach=@var{machine}
++@item --output-mach=@var{machine}
+ Change the ELF machine type in the ELF header to @var{machine}.  The
+ supported ELF machine types are the same as @option{--input-mach}.
+ 
+-@itemx --input-type=@var{type}
++@item --input-type=@var{type}
+ Set the matching input ELF file type to @var{type}.  If
+ @option{--input-type} isn't specified, it will match any ELF file types.
+ 
+ The supported ELF file types are, @var{rel}, @var{exec} and @var{dyn}.
+ 
+-@itemx --output-type=@var{type}
++@item --output-type=@var{type}
+ Change the ELF file type in the ELF header to @var{type}.  The
+ supported ELF types are the same as @option{--input-type}.
+ 
+-@itemx --input-osabi=@var{osabi}
++@item --input-osabi=@var{osabi}
+ Set the matching input ELF file OSABI to @var{osabi}.  If
+ @option{--input-osabi} isn't specified, it will match any ELF OSABIs.
+ 
+@@ -4301,7 +4301,7 @@ The supported ELF OSABIs are, @var{none}, @var{HPUX}, @var{NetBSD},
+ @var{FreeBSD}, @var{TRU64}, @var{Modesto}, @var{OpenBSD}, @var{OpenVMS},
+ @var{NSK}, @var{AROS} and @var{FenixOS}.
+ 
+-@itemx --output-osabi=@var{osabi}
++@item --output-osabi=@var{osabi}
+ Change the ELF OSABI in the ELF header to @var{osabi}.  The
+ supported ELF OSABI are the same as @option{--input-osabi}.
+ 
+diff --git a/src/binutils/gas/doc/c-arc.texi b/src/binutils/gas/doc/c-arc.texi
+index ea0fa4eb5..f27b3270a 100644
+--- a/src/binutils/gas/doc/c-arc.texi
++++ b/src/binutils/gas/doc/c-arc.texi
+@@ -220,7 +220,7 @@ The extension instructions are not macros.  The assembler creates
+ encodings for use of these instructions according to the specification
+ by the user.  The parameters are:
+ 
+-@table @bullet
++@itemize @bullet
+ @item @var{name}
+ Name of the extension instruction 
+ 
+@@ -279,7 +279,7 @@ code were: inst 0,r1,r2.  You use OP1_IMM_IMPLIED by bitwise ORing it
+ with SYNTAX_20P.
+ 
+ @end itemize 
+-@end table
++@end itemize
+ 
+ For example, defining 64-bit multiplier with immediate operands:
+ 
+diff --git a/src/binutils/gas/doc/c-arm.texi b/src/binutils/gas/doc/c-arm.texi
+index 27f1b9fae..a4b8e8a85 100644
+--- a/src/binutils/gas/doc/c-arm.texi
++++ b/src/binutils/gas/doc/c-arm.texi
+@@ -383,7 +383,7 @@ ARM and THUMB instructions had their own, separate syntaxes.  The new,
+ @code{unified} syntax, which can be selected via the @code{.syntax}
+ directive, and has the following main features:
+ 
+-@table @bullet
++@itemize @bullet
+ @item
+ Immediate operands do not require a @code{#} prefix.
+ 
+@@ -408,7 +408,7 @@ The @code{.N} and @code{.W} suffixes are recognized and honored.
+ @item
+ All instructions set the flags if and only if they have an @code{s}
+ affix.
+-@end table
++@end itemize
+ 
+ @node ARM-Chars
+ @subsection Special Characters
+diff --git a/src/binutils/gas/doc/c-lm32.texi b/src/binutils/gas/doc/c-lm32.texi
+index d09fd27dc..dfe201b6f 100644
+--- a/src/binutils/gas/doc/c-lm32.texi
++++ b/src/binutils/gas/doc/c-lm32.texi
+@@ -11,7 +11,7 @@
+ 
+ @ifclear GENERIC
+ @node Machine Dependencies
+-@chapter LM£" Dependent Features
++@chapter LM32 Dependent Features
+ @end ifclear
+ 
+ @cindex LM32 support
+diff --git a/src/binutils/gas/doc/c-mips.texi b/src/binutils/gas/doc/c-mips.texi
+index d3860f1a9..ada1fac09 100644
+--- a/src/binutils/gas/doc/c-mips.texi
++++ b/src/binutils/gas/doc/c-mips.texi
+@@ -234,7 +234,7 @@ the @samp{mad} and @samp{madu} instruction, and to not schedule @samp{nop}
+ instructions around accesses to the @samp{HI} and @samp{LO} registers.
+ @samp{-no-m4650} turns off this option.
+ 
+-@itemx -m3900
++@item -m3900
+ @itemx -no-m3900
+ @itemx -m4100
+ @itemx -no-m4100
+diff --git a/src/binutils/gas/doc/c-score.texi b/src/binutils/gas/doc/c-score.texi
+index 3af20a381..40959f5b9 100644
+--- a/src/binutils/gas/doc/c-score.texi
++++ b/src/binutils/gas/doc/c-score.texi
+@@ -37,7 +37,7 @@ implicitly with the @code{gp} register. The default value is 8.
+ @item -EB
+ Assemble code for a big-endian cpu
+ 
+-@itemx -EL
++@item -EL
+ Assemble code for a little-endian cpu
+ 
+ @item -FIXDD 
+@@ -49,13 +49,13 @@ Assemble code for no warning message for fix data dependency
+ @item -SCORE5
+ Assemble code for target is SCORE5
+ 
+-@itemx -SCORE5U
++@item -SCORE5U
+ Assemble code for target is SCORE5U
+ 
+-@itemx -SCORE7
++@item -SCORE7
+ Assemble code for target is SCORE7, this is default setting
+ 
+-@itemx -SCORE3
++@item -SCORE3
+ Assemble code for target is SCORE3
+ 
+ @item -march=score7
+diff --git a/src/binutils/gas/doc/c-tic54x.texi b/src/binutils/gas/doc/c-tic54x.texi
+index d61ec3af1..456034db4 100644
+--- a/src/binutils/gas/doc/c-tic54x.texi
++++ b/src/binutils/gas/doc/c-tic54x.texi
+@@ -345,7 +345,7 @@ Assign @var{name} the string @var{string}.  String replacement is
+ performed on @var{string} before assignment.
+ 
+ @cindex @code{eval} directive, TIC54X
+-@itemx .eval @var{string}, @var{name}
++@item .eval @var{string}, @var{name}
+ Evaluate the contents of string @var{string} and assign the result as a
+ string to the subsym @var{name}.  String replacement is performed on
+ @var{string} before assignment. 
+diff --git a/src/binutils/gprof/Makefile.in b/src/binutils/gprof/Makefile.in
+index a740fea18..cc74bef9b 100644
+--- a/src/binutils/gprof/Makefile.in
++++ b/src/binutils/gprof/Makefile.in
+@@ -94,7 +94,7 @@ LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+ 	$(LDFLAGS) -o $@
+ SOURCES = $(gprof_SOURCES)
+ INFO_DEPS = gprof.info
+-am__TEXINFO_TEX_DIR = $(srcdir)/$(top_srcdir)/../texinfo
++am__TEXINFO_TEX_DIR = $(srcdir)$(top_srcdir)/../texinfo
+ DVIS = gprof.dvi
+ PDFS = gprof.pdf
+ PSS = gprof.ps
+diff --git a/src/binutils/ld/Makefile.in b/src/binutils/ld/Makefile.in
+index f062b92b5..3d22e88d4 100644
+--- a/src/binutils/ld/Makefile.in
++++ b/src/binutils/ld/Makefile.in
+@@ -118,7 +118,7 @@ LTYACCCOMPILE = $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) \
+ SOURCES = $(libldtestplug_la_SOURCES) $(ld_new_SOURCES) \
+ 	$(EXTRA_ld_new_SOURCES)
+ INFO_DEPS = ld.info
+-am__TEXINFO_TEX_DIR = $(srcdir)/$(top_srcdir)/../texinfo
++am__TEXINFO_TEX_DIR = $(srcdir)$(top_srcdir)/../texinfo
+ DVIS = ld.dvi
+ PDFS = ld.pdf
+ PSS = ld.ps
+diff --git a/src/gcc/gcc/cp/cfns.gperf b/src/gcc/gcc/cp/cfns.gperf
+index ef1ed083d..ba0c487a6 100644
+--- a/src/gcc/gcc/cp/cfns.gperf
++++ b/src/gcc/gcc/cp/cfns.gperf
+@@ -22,6 +22,9 @@ __inline
+ static unsigned int hash (const char *, unsigned int);
+ #ifdef __GNUC__
+ __inline
++#ifdef __GNUC_STDC_INLINE__
++__attribute__ ((__gnu_inline__))
++#endif
+ #endif
+ const char * libc_name_p (const char *, unsigned int);
+ %}
+diff --git a/src/gcc/gcc/cp/cfns.h b/src/gcc/gcc/cp/cfns.h
+index 62cdfab93..2fb9b4632 100644
+--- a/src/gcc/gcc/cp/cfns.h
++++ b/src/gcc/gcc/cp/cfns.h
+@@ -53,6 +53,9 @@ __inline
+ static unsigned int hash (const char *, unsigned int);
+ #ifdef __GNUC__
+ __inline
++#ifdef __GNUC_STDC_INLINE__
++__attribute__ ((__gnu_inline__))
++#endif
+ #endif
+ const char * libc_name_p (const char *, unsigned int);
+ /* maximum key range = 391, duplicates = 0 */
+diff --git a/src/gcc/gcc/doc/sourcebuild.texi b/src/gcc/gcc/doc/sourcebuild.texi
+index ea6fedb23..e9e49027d 100644
+--- a/src/gcc/gcc/doc/sourcebuild.texi
++++ b/src/gcc/gcc/doc/sourcebuild.texi
+@@ -676,7 +676,7 @@ standard rule in @file{gcc/Makefile.in} to the variable
+ @code{lang_checks}.
+ 
+ @table @code
+-@itemx all.cross
++@item all.cross
+ @itemx start.encap
+ @itemx rest.encap
+ FIXME: exactly what goes in each of these targets?
+diff --git a/src/gdb/gdb/doc/gdb.texinfo b/src/gdb/gdb/doc/gdb.texinfo
+index da9b810d1..927f93f92 100644
+--- a/src/gdb/gdb/doc/gdb.texinfo
++++ b/src/gdb/gdb/doc/gdb.texinfo
+@@ -4831,7 +4831,7 @@ invocations have returned.
+ 
+ 
+ @kindex advance @var{location}
+-@itemx advance @var{location}
++@item advance @var{location}
+ Continue running the program up to the given @var{location}.  An argument is
+ required, which should be of one of the forms described in
+ @ref{Specify Location}.
+@@ -5726,7 +5726,7 @@ function invocation, you end up at the beginning.
+ @kindex set exec-direction
+ @item set exec-direction
+ Set the direction of target execution.
+-@itemx set exec-direction reverse
++@item set exec-direction reverse
+ @cindex execute forward or backward in time
+ @value{GDBN} will perform all execution commands in reverse, until the
+ exec-direction mode is changed to ``forward''.  Affected commands include
+diff --git a/src/gdb/gdb/doc/gdbint.texinfo b/src/gdb/gdb/doc/gdbint.texinfo
+index 8a1903d57..d95a72cb6 100644
+--- a/src/gdb/gdb/doc/gdbint.texinfo
++++ b/src/gdb/gdb/doc/gdbint.texinfo
+@@ -32,7 +32,7 @@ This file documents the internals of the GNU debugger @value{GDBN}.
+ 
+ @titlepage
+ @title @value{GDBN} Internals
+-@subtitle{A guide to the internals of the GNU debugger}
++@subtitle A guide to the internals of the GNU debugger
+ @author John Gilmore
+ @author Cygnus Solutions
+ @author Second Edition:

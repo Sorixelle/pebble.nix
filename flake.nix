@@ -31,6 +31,8 @@
         };
 
         packages = rec {
+          arm-embedded-toolchain = pkgs.callPackage ./derivations/arm-embedded-toolchain { };
+
           boost153 = pkgs.callPackage ./derivations/boost153 { };
 
           pebble-qemu = pkgs.callPackage ./derivations/pebble-qemu { };
