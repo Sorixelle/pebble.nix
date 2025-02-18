@@ -51,5 +51,13 @@
             inherit boost153;
           };
         };
+
+        devShell = pkgs.mkShell {
+          name = "pebble.nix-devshell";
+          packages = with pkgs; [
+            nil
+            nixfmt-rfc-style
+          ];
+        };
       });
 }
