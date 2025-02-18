@@ -1,6 +1,8 @@
 { stdenv, lib, python2, fetchFromGitHub, fetchgit
 , ensureNewerSourcesForZipFilesHook, update-python-libraries, darwin, boost153
-, dos2unix, linuxPackages, llvmPackages, system, which }:
+, dos2unix, linuxPackages, llvmPackages, system, which
+
+, debug ? false }:
 
 let
   v8-source = fetchFromGitHub {
@@ -20,9 +22,14 @@ let
 
   darwinDeps = lib.optionals stdenv.isDarwin (with darwin; [ cctools dtrace ]);
 
+  # TODO: figure out why release builds don't work on apple silicon
+  buildDebug = if system == "aarch64-darwin" then true else debug;
+
   boost = boost153.override {
     inherit stdenv;
     python = python2;
+    enableRelease = !debug;
+    enableDebug = debug;
   };
 
 in with python2.pkgs;
@@ -92,9 +99,9 @@ toPythonModule (stdenv.mkDerivation rec {
 
   postPatch = ''
     substituteInPlace $V8_HOME/build/gyp/gyp --replace "bash" "sh"
-    # TODO: figure out why release builds don't work, and then make this configurable
+  '' + (lib.optionalString debug ''
     substituteInPlace setup.py --replace "DEBUG = False" "DEBUG = True"
-  '' + lib.optionalString stdenv.cc.isClang ''
+  '') + lib.optionalString stdenv.cc.isClang ''
     substituteInPlace $V8_HOME/Makefile --replace "g++" "clang++"
   '';
 
