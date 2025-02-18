@@ -1,6 +1,15 @@
-{ stdenv, lib, fetchurl, fetchFromGitHub, makeWrapper, python2Packages, pyv8 }:
+{
+  stdenv,
+  lib,
+  fetchurl,
+  fetchFromGitHub,
+  makeWrapper,
+  python2Packages,
+  pyv8,
+}:
 
-with python2Packages; rec {
+with python2Packages;
+rec {
   backports-ssl-match-hostname = buildPythonPackage rec {
     pname = "backports.ssl_match_hostname";
     version = "3.7.0.1";
@@ -40,7 +49,10 @@ with python2Packages; rec {
       sha256 = "07rqwfpbv13mk6gg8mf0bmvcf6siyffjpgai1xd8ky7r801j4xb4";
     };
 
-    propagatedBuildInputs = [ gevent greenlet ];
+    propagatedBuildInputs = [
+      gevent
+      greenlet
+    ];
   };
 
   greenlet = buildPythonPackage rec {
@@ -60,7 +72,14 @@ with python2Packages; rec {
       sha256 = "sha256-DtJQ29KRlH0aKY6J85r8xHfVpmJHcFAwNLcliGAbzAU=";
     };
 
-    propagatedBuildInputs = [ contextlib2 pathlib2 setuptools_scm singledispatch typing zipp ];
+    propagatedBuildInputs = [
+      contextlib2
+      pathlib2
+      setuptools_scm
+      singledispatch
+      typing
+      zipp
+    ];
   };
 
   libpebble2 = buildPythonPackage rec {
@@ -73,7 +92,12 @@ with python2Packages; rec {
 
     doCheck = false;
 
-    propagatedBuildInputs = [ enum34 pyserial six websocket_client ];
+    propagatedBuildInputs = [
+      enum34
+      pyserial
+      six
+      websocket_client
+    ];
   };
 
   netaddr = buildPythonPackage rec {
@@ -93,7 +117,12 @@ with python2Packages; rec {
       sha256 = "sha256-dKpsO+uQpKe5uNC8PNYNs01Fxe5hNhh7ueq+hbSZDl4=";
     };
 
-    propagatedBuildInputs = [ httplib2 pyasn1-modules rsa six ];
+    propagatedBuildInputs = [
+      httplib2
+      pyasn1-modules
+      rsa
+      six
+    ];
   };
 
   peewee = buildPythonPackage rec {
@@ -154,7 +183,7 @@ with python2Packages; rec {
     };
   };
 
-  pypkjs = buildPythonPackage rec {
+  pypkjs = buildPythonPackage {
     pname = "pypkjs";
     version = "1.1.1";
     src = fetchFromGitHub {
@@ -264,7 +293,14 @@ with python2Packages; rec {
       sha256 = "sha256-KIFxE0ov87+xovVPEZ53zRuBwp/BJlojVvPo0Ux9WMQ=";
     };
 
-    propagatedBuildInputs = [ distlib filelock importlib-metadata importlib-resources platformdirs setuptools_scm ];
+    propagatedBuildInputs = [
+      distlib
+      filelock
+      importlib-metadata
+      importlib-resources
+      platformdirs
+      setuptools_scm
+    ];
   };
 
   websocket_client = buildPythonPackage rec {

@@ -1,8 +1,19 @@
-{ stdenv, lib, python2, fetchFromGitHub, fetchgit
-, ensureNewerSourcesForZipFilesHook, update-python-libraries, darwin, boost153
-, dos2unix, linuxPackages, llvmPackages, system, which
+{
+  stdenv,
+  lib,
+  python2,
+  fetchFromGitHub,
+  fetchgit,
+  ensureNewerSourcesForZipFilesHook,
+  darwin,
+  boost153,
+  dos2unix,
+  linuxPackages,
+  system,
+  which,
 
-, debug ? false }:
+  debug ? false,
+}:
 
 let
   v8-source = fetchFromGitHub {
@@ -20,7 +31,13 @@ let
 
   linuxDeps = lib.optionals stdenv.isLinux [ linuxPackages.systemtap ];
 
-  darwinDeps = lib.optionals stdenv.isDarwin (with darwin; [ cctools dtrace ]);
+  darwinDeps = lib.optionals stdenv.isDarwin (
+    with darwin;
+    [
+      cctools
+      dtrace
+    ]
+  );
 
   # TODO: figure out why release builds don't work on apple silicon
   buildDebug = if system == "aarch64-darwin" then true else debug;
@@ -32,93 +49,103 @@ let
     enableDebug = debug;
   };
 
-in with python2.pkgs;
-toPythonModule (stdenv.mkDerivation rec {
-  name = "python2.7-PyV8";
-  version = "1.0.dev";
-  src = fetchFromGitHub {
-    owner = "pebble";
-    repo = "pyv8";
-    rev = "0e272accb345a82b19cfd6bd34436a790fa03cc9";
-    sha256 = "02jvxydpfkwprrvq0dzj6waxgbx7xhvvhmn2cdcii0yf7v47n1bn";
-  };
+in
+with python2.pkgs;
+toPythonModule (
+  stdenv.mkDerivation {
+    name = "python2.7-PyV8";
+    version = "1.0.dev";
+    src = fetchFromGitHub {
+      owner = "pebble";
+      repo = "pyv8";
+      rev = "0e272accb345a82b19cfd6bd34436a790fa03cc9";
+      sha256 = "02jvxydpfkwprrvq0dzj6waxgbx7xhvvhmn2cdcii0yf7v47n1bn";
+    };
 
-  nativeBuildInputs = [
-    dos2unix
-    python
-    wrapPython
-    ensureNewerSourcesForZipFilesHook
-    pythonRemoveTestsDirHook
-    setuptools
-    pythonCatchConflictsHook
-    pythonRemoveBinBytecodeHook
-    setuptoolsBuildHook
-    pipInstallHook
-    pythonImportsCheckHook
-    which
-  ] ++ linuxDeps ++ darwinDeps;
+    nativeBuildInputs =
+      [
+        dos2unix
+        python
+        wrapPython
+        ensureNewerSourcesForZipFilesHook
+        pythonRemoveTestsDirHook
+        setuptools
+        pythonCatchConflictsHook
+        pythonRemoveBinBytecodeHook
+        setuptoolsBuildHook
+        pipInstallHook
+        pythonImportsCheckHook
+        which
+      ]
+      ++ linuxDeps
+      ++ darwinDeps;
 
-  propagatedBuildInputs = [ python2 boost ];
+    propagatedBuildInputs = [
+      python2
+      boost
+    ];
 
-  strictDeps = true;
+    strictDeps = true;
 
-  LANG = "${if stdenv.isDarwin then "en_US" else "C"}.UTF-8";
+    LANG = "${if stdenv.isDarwin then "en_US" else "C"}.UTF-8";
 
-  CXX_host = lib.optionalString stdenv.cc.isClang "clang++";
-  LINK = if stdenv.cc.isClang then "clang++" else "g++";
-  CXXFLAGS = lib.optionalString stdenv.isDarwin
-    "-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.8";
-  LDFLAGS =
-    lib.optionalString stdenv.isDarwin "-lc++ -mmacosx-version-min=10.8";
+    CXX_host = lib.optionalString stdenv.cc.isClang "clang++";
+    LINK = if stdenv.cc.isClang then "clang++" else "g++";
+    CXXFLAGS = lib.optionalString stdenv.isDarwin "-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.8";
+    LDFLAGS = lib.optionalString stdenv.isDarwin "-lc++ -mmacosx-version-min=10.8";
 
-  doCheck = false;
+    doCheck = false;
 
-  postUnpack = ''
-    cp -r ${v8-source} source/v8-source
-    chmod -R +w source/v8-source
-    export V8_HOME=`pwd`/source/v8-source
+    postUnpack = ''
+      cp -r ${v8-source} source/v8-source
+      chmod -R +w source/v8-source
+      export V8_HOME=`pwd`/source/v8-source
 
-    cp -r ${gyp-source} $V8_HOME/build/gyp
-    chmod -R +w $V8_HOME/build/gyp
-  '';
+      cp -r ${gyp-source} $V8_HOME/build/gyp
+      chmod -R +w $V8_HOME/build/gyp
+    '';
 
-  prePatch = ''
-    # make my patching life easier
-    dos2unix src/*
-  '';
+    prePatch = ''
+      # make my patching life easier
+      dos2unix src/*
+    '';
 
-  patches = [
-    ./aarch64-darwin-support.patch
-    ./aarch64-darwin-jit-memory.patch
-    ./fix-CreateHandle-scope.patch
-    ./fix-extension-build.patch
-    ./fix-gyp-darwin.patch
-    ./fix-v8-segfault.patch
-    ./pyv8-debug-build-fixes.patch
-  ];
+    patches = [
+      ./aarch64-darwin-support.patch
+      ./aarch64-darwin-jit-memory.patch
+      ./fix-CreateHandle-scope.patch
+      ./fix-extension-build.patch
+      ./fix-gyp-darwin.patch
+      ./fix-v8-segfault.patch
+      ./pyv8-debug-build-fixes.patch
+    ];
 
-  postPatch = ''
-    substituteInPlace $V8_HOME/build/gyp/gyp --replace "bash" "sh"
-  '' + (lib.optionalString debug ''
-    substituteInPlace setup.py --replace "DEBUG = False" "DEBUG = True"
-  '') + lib.optionalString stdenv.cc.isClang ''
-    substituteInPlace $V8_HOME/Makefile --replace "g++" "clang++"
-  '';
+    postPatch =
+      ''
+        substituteInPlace $V8_HOME/build/gyp/gyp --replace "bash" "sh"
+      ''
+      + (lib.optionalString buildDebug ''
+        substituteInPlace setup.py --replace "DEBUG = False" "DEBUG = True"
+      '')
+      + lib.optionalString stdenv.cc.isClang ''
+        substituteInPlace $V8_HOME/Makefile --replace "g++" "clang++"
+      '';
 
-  dontStrip = true;
+    dontStrip = true;
 
-  postFixup = ''
-    wrapPythonPrograms
-  '';
+    postFixup = ''
+      wrapPythonPrograms
+    '';
 
-  disallowedReferences =
-    lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform)
-    [ python2.pythonForBuild ];
+    disallowedReferences = lib.optionals (stdenv.hostPlatform != stdenv.buildPlatform) [
+      python2.pythonForBuild
+    ];
 
-  dontUsePythonRecompileBytecode = true;
+    dontUsePythonRecompileBytecode = true;
 
-  meta = {
-    platforms = python2.meta.platforms;
-    isBuildPythonPackage = python2.meta.platforms;
-  };
-})
+    meta = {
+      platforms = python2.meta.platforms;
+      isBuildPythonPackage = python2.meta.platforms;
+    };
+  }
+)

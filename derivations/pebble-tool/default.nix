@@ -1,14 +1,35 @@
-{ stdenv, lib, autoPatchelfHook, fetchurl, fetchFromGitHub, makeWrapper
-, freetype, python2Packages, pyv8, zlib }:
+{
+  stdenv,
+  lib,
+  fetchurl,
+  fetchFromGitHub,
+  makeWrapper,
+  freetype,
+  python2Packages,
+  pyv8,
+  zlib,
+}:
 
 let
   pythonLibs = import ./python-libs.nix {
-    inherit fetchFromGitHub fetchurl lib makeWrapper python2Packages pyv8
-      stdenv;
+    inherit
+      fetchFromGitHub
+      fetchurl
+      lib
+      makeWrapper
+      python2Packages
+      pyv8
+      stdenv
+      ;
   };
 
-  rpath = lib.makeLibraryPath [ freetype stdenv.cc.cc.lib zlib ];
-in python2Packages.buildPythonPackage rec {
+  rpath = lib.makeLibraryPath [
+    freetype
+    stdenv.cc.cc.lib
+    zlib
+  ];
+in
+python2Packages.buildPythonPackage {
   pname = "pebble-tool";
   version = "4.6rc2";
 
@@ -21,7 +42,8 @@ in python2Packages.buildPythonPackage rec {
 
   nativeBuildInputs = [ makeWrapper ];
 
-  propagatedBuildInputs = builtins.attrValues pythonLibs
+  propagatedBuildInputs =
+    builtins.attrValues pythonLibs
     ++ (with python2Packages; [
       enum34
       httplib2
@@ -36,7 +58,10 @@ in python2Packages.buildPythonPackage rec {
     substituteInPlace setup.py --replace "==" ">="
     cat requirements.txt
   '';
-  patches = [ ./exec-phonesim.patch ./fix-virtualenv-commands.patch ];
+  patches = [
+    ./exec-phonesim.patch
+    ./fix-virtualenv-commands.patch
+  ];
 
   postFixup = ''
     wrapProgram $out/bin/pebble \

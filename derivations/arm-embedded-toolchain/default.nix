@@ -1,19 +1,19 @@
-{ stdenv
-, fetchurl
+{
+  stdenv,
+  fetchurl,
 
-, autoconf
-, automake
-, bison
-, flex
-, libtool
-, m4
-, ncurses
-, perl
-, texinfo
+  autoconf,
+  automake,
+  bison,
+  flex,
+  libtool,
+  m4,
+  ncurses,
+  perl,
+  texinfo,
 }:
 
-let
-in stdenv.mkDerivation rec {
+stdenv.mkDerivation rec {
   pname = "arm-embedded-toolchain";
   version = "4.7";
 

@@ -1,14 +1,17 @@
-{ pebbleCrossPkgs, pkgs, pebble, system }:
+{
+  pebbleCrossPkgs,
+  pkgs,
+  pebble,
+  system,
+}:
 
-{ devServerIP ? null
-
-, emulatorTarget ? null
-
-, cloudPebble ? false
-
-, nativeBuildInputs ? [ ]
-
-, CFLAGS ? "" }@attrs:
+{
+  devServerIP ? null,
+  emulatorTarget ? null,
+  cloudPebble ? false,
+  nativeBuildInputs ? [ ],
+  CFLAGS ? "",
+}@attrs:
 
 let
   isAppleSilicon = system == "aarch64-darwin";
@@ -21,18 +24,27 @@ let
     "nativeBuildInputs"
     "CFLAGS"
   ];
-in shellPkgs.callPackage ({ gccStdenv, lib, nodejs }:
+in
+shellPkgs.callPackage (
+  {
+    gccStdenv,
+    lib,
+    nodejs,
+  }:
   gccStdenv.mkDerivation {
     name = "pebble-env";
     phases = [ "nophase" ];
 
-    nativeBuildInputs = [
-      nodejs
-      pebble.pebble-qemu
-      pebble.pebble-tool
-    ] ++ (lib.optionals (!isAppleSilicon) [
-      pebble.arm-embedded-toolchain
-    ]) ++ nativeBuildInputs;
+    nativeBuildInputs =
+      [
+        nodejs
+        pebble.pebble-qemu
+        pebble.pebble-tool
+      ]
+      ++ lib.optionals (!isAppleSilicon) [
+        pebble.arm-embedded-toolchain
+      ]
+      ++ nativeBuildInputs;
 
     PEBBLE_PHONE = devServerIP;
     PEBBLE_EMULATOR = emulatorTarget;
@@ -44,4 +56,6 @@ in shellPkgs.callPackage ({ gccStdenv, lib, nodejs }:
       echo This derivation is a Pebble development shell, and not meant to be built.
       exit 1
     '';
-  } // rest) { }
+  }
+  // rest
+) { }

@@ -7,12 +7,20 @@
     flake-utils.url = "github:numtide/flake-utils";
   };
 
-  outputs = { self, flake-utils, nixpkgs }:
-    flake-utils.lib.eachSystem [ "i686-linux" "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ]
-    (system:
+  outputs =
+    {
+      self,
+      flake-utils,
+      nixpkgs,
+    }:
+    flake-utils.lib.eachSystem [ "i686-linux" "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ] (
+      system:
       let
         config = {
-          permittedInsecurePackages = [ "python-2.7.18.8" "python-2.7.18.8-env" ];
+          permittedInsecurePackages = [
+            "python-2.7.18.8"
+            "python-2.7.18.8-env"
+          ];
         };
         pkgs = import nixpkgs {
           inherit system config;
@@ -24,7 +32,8 @@
             libc = "newlib-nano";
           };
         };
-      in rec {
+      in
+      rec {
         pebbleEnv = import ./buildTools/pebbleEnv.nix {
           inherit pebbleCrossPkgs pkgs system;
           pebble = self.packages.${system};
@@ -44,8 +53,7 @@
           boost153 = pkgs.callPackage ./derivations/boost153 { };
 
           pebble-qemu = pkgs.callPackage ./derivations/pebble-qemu { };
-          pebble-tool =
-            pkgs.callPackage ./derivations/pebble-tool { inherit pyv8; };
+          pebble-tool = pkgs.callPackage ./derivations/pebble-tool { inherit pyv8; };
 
           pyv8 = pkgs.callPackage ./derivations/pyv8 {
             inherit boost153;
@@ -59,5 +67,6 @@
             nixfmt-rfc-style
           ];
         };
-      });
+      }
+    );
 }
