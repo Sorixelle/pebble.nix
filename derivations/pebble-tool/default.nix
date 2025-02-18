@@ -70,6 +70,10 @@ python2Packages.buildPythonPackage {
       --set PHONESIM_PATH ${pythonLibs.pypkjs}/bin/pypkjs
   '';
 
+  passthru = {
+    inherit pythonLibs;
+  };
+
   meta = with lib; {
     homepage = "https://developer.rebble.io/developer.pebble.com/index.html";
     description = "Tool for interacting with the Pebble SDK";

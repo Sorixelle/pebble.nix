@@ -48,7 +48,7 @@
         };
 
         packages = {
-          inherit (pkgs) arm-embedded-toolchain boost153 pebble-qemu pebble-tool pyv8;
+          inherit (pkgs) arm-embedded-toolchain boost153 pebble-qemu pebble-tool pypkjs pyv8;
         };
 
         devShell = pkgs.mkShell {
@@ -65,6 +65,7 @@
         boost153 = final.callPackage ./derivations/boost153 { };
         pebble-qemu = final.callPackage ./derivations/pebble-qemu { };
         pebble-tool = final.callPackage ./derivations/pebble-tool { };
+        pypkjs = final.pebble-tool.passthru.pythonLibs.pypkjs;
         pyv8 = final.callPackage ./derivations/pyv8 { };
       };
     };
