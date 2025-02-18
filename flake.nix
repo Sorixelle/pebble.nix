@@ -13,7 +13,7 @@
       flake-utils,
       nixpkgs,
     }:
-    flake-utils.lib.eachSystem [ "i686-linux" "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ] (
+    flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ] (
       system:
       let
         config = {
