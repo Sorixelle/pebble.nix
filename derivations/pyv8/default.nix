@@ -58,7 +58,7 @@ toPythonModule (stdenv.mkDerivation rec {
   LANG = "${if stdenv.isDarwin then "en_US" else "C"}.UTF-8";
 
   CXX_host = lib.optionalString stdenv.cc.isClang "clang++";
-  LINK = lib.optionalString stdenv.cc.isClang "clang++";
+  LINK = if stdenv.cc.isClang then "clang++" else "g++";
   CXXFLAGS = lib.optionalString stdenv.isDarwin
     "-std=c++11 -stdlib=libc++ -mmacosx-version-min=10.8";
   LDFLAGS =

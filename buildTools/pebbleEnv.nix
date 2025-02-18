@@ -38,9 +38,7 @@ in shellPkgs.callPackage ({ gccStdenv, lib, nodejs }:
     PEBBLE_EMULATOR = emulatorTarget;
     PEBBLE_CLOUDPEBBLE = if cloudPebble then "1" else null;
 
-    CFLAGS = "-Wno-error=builtin-macro-redefined -Wno-error=builtin-declaration-mismatch -include sys/types.h " + (
-      lib.optionalString isAppleSilicon "-Wno-error "
-    ) + CFLAGS;
+    CFLAGS = (lib.optionalString isAppleSilicon "-Wno-error -include sys/types.h ") + CFLAGS;
 
     nophase = ''
       echo This derivation is a Pebble development shell, and not meant to be built.

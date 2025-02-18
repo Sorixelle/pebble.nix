@@ -215,6 +215,38 @@ index 11c8ffcacdd..d216201f223 100644
  }
  
  
+diff --git a/src/platform-linux.cc b/src/platform-linux.cc
+index b35cd284549..5e4cc059c94 100644
+--- a/v8-source/src/platform-linux.cc
++++ b/v8-source/src/platform-linux.cc
+@@ -384,8 +384,8 @@ bool VirtualMemory::Commit(void* address, size_t size, bool is_executable) {
+ }
+ 
+ 
+-bool VirtualMemory::Uncommit(void* address, size_t size) {
+-  return UncommitRegion(address, size);
++bool VirtualMemory::Uncommit(void* address, size_t size, bool is_executable) {
++  return UncommitRegion(address, size, is_executable);
+ }
+ 
+ 
+@@ -433,7 +433,7 @@ bool VirtualMemory::CommitRegion(void* base, size_t size, bool is_executable) {
+ }
+ 
+ 
+-bool VirtualMemory::UncommitRegion(void* base, size_t size) {
++bool VirtualMemory::UncommitRegion(void* base, size_t size, bool is_executable) {
+   return mmap(base,
+               size,
+               PROT_NONE,
+@@ -455,4 +455,7 @@ bool VirtualMemory::HasLazyCommits() {
+   return true;
+ }
+ 
++// no-op on linux
++void VirtualMemory::SetJITWriteProtect(bool prot) { }
++
+ } }  // namespace v8::internal
 diff --git a/src/platform-macos.cc b/src/platform-macos.cc
 index 683a04d3815..3ba579947e6 100644
 --- a/v8-source/src/platform-macos.cc
@@ -683,3 +715,16 @@ index 770b88a9fba..4f59c2ec518 100644
  
    // Zaps a contiguous block of memory [start..(start+size)[ thus
    // filling it up with a recognizable non-NULL bit pattern.
+diff --git a/test/cctest/test-platform-linux.cc b/test/cctest/test-platform-linux.cc
+index f289e948284..29f2fad7a60 100644
+--- a/v8-source/test/cctest/test-platform-linux.cc
++++ b/v8-source/test/cctest/test-platform-linux.cc
+@@ -48,7 +48,7 @@ TEST(VirtualMemory) {
+   // Check whether we can write to memory.
+   int* addr = static_cast<int*>(block_addr);
+   addr[KB-1] = 2;
+-  CHECK(vm->Uncommit(block_addr, block_size));
++  CHECK(vm->Uncommit(block_addr, block_size, false));
+   delete vm;
+ }
+ 

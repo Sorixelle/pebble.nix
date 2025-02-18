@@ -9,3 +9,11 @@
  BOOST_STATIC_LINK = False
  PYTHON_HOME = None
  V8_HOME = None
+@@ -581,6 +582,7 @@ class develop(_develop):
+ pyv8 = Extension(name="_PyV8",
+                  sources=[os.path.join("src", file) for file in source_files],
+                  define_macros=macros,
++                 undef_macros=["NDEBUG"] if DEBUG else [],
+                  include_dirs=include_dirs,
+                  library_dirs=library_dirs,
+                  libraries=libraries
