@@ -24,9 +24,11 @@
         };
         pkgs = import nixpkgs {
           inherit system config;
+          overlays = [ self.overlays.default ];
         };
         pebbleCrossPkgs = import nixpkgs {
           inherit system config;
+          overlays = [ self.overlays.default ];
           crossSystem = {
             config = "arm-none-eabi";
             libc = "newlib-nano";
@@ -42,22 +44,11 @@
         buildPebbleApp = import ./buildTools/buildPebbleApp.nix {
           inherit pkgs nixpkgs system;
           pebble-tool = packages.pebble-tool;
-          python-libs = pkgs.callPackage ./derivations/pebble-tool/python-libs.nix {
-            pyv8 = packages.pyv8;
-          };
+          python-libs = pkgs.callPackage ./derivations/pebble-tool/python-libs.nix { };
         };
 
-        packages = rec {
-          arm-embedded-toolchain = pkgs.callPackage ./derivations/arm-embedded-toolchain { };
-
-          boost153 = pkgs.callPackage ./derivations/boost153 { };
-
-          pebble-qemu = pkgs.callPackage ./derivations/pebble-qemu { };
-          pebble-tool = pkgs.callPackage ./derivations/pebble-tool { inherit pyv8; };
-
-          pyv8 = pkgs.callPackage ./derivations/pyv8 {
-            inherit boost153;
-          };
+        packages = {
+          inherit (pkgs) arm-embedded-toolchain boost153 pebble-qemu pebble-tool pyv8;
         };
 
         devShell = pkgs.mkShell {
@@ -68,5 +59,13 @@
           ];
         };
       }
-    );
+    ) // {
+      overlays.default = final: prev: {
+        arm-embedded-toolchain = final.callPackage ./derivations/arm-embedded-toolchain { };
+        boost153 = final.callPackage ./derivations/boost153 { };
+        pebble-qemu = final.callPackage ./derivations/pebble-qemu { };
+        pebble-tool = final.callPackage ./derivations/pebble-tool { };
+        pyv8 = final.callPackage ./derivations/pyv8 { };
+      };
+    };
 }
