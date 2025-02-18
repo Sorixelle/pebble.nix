@@ -1,4 +1,4 @@
-{ nixpkgs, pebble, system }:
+{ pebbleCrossPkgs, pkgs, pebble, system }:
 
 { devServerIP ? null
 
@@ -11,30 +11,36 @@
 , CFLAGS ? "" }@attrs:
 
 let
-  pkgs = import nixpkgs {
-    inherit system;
-    crossSystem = nixpkgs.lib.systems.examples.arm-embedded;
-  };
+  isAppleSilicon = system == "aarch64-darwin";
+  shellPkgs = if isAppleSilicon then pebbleCrossPkgs else pkgs;
 
   rest = builtins.removeAttrs attrs [
     "devServerIP"
     "emulatorTarget"
     "cloudPebble"
     "nativeBuildInputs"
+    "CFLAGS"
   ];
-in pkgs.callPackage ({ gccStdenv, nodejs }:
+in shellPkgs.callPackage ({ gccStdenv, lib, nodejs }:
   gccStdenv.mkDerivation {
     name = "pebble-env";
     phases = [ "nophase" ];
 
-    nativeBuildInputs = with pebble;
-      [ nodejs pebble-qemu pebble-tool ] ++ nativeBuildInputs;
+    nativeBuildInputs = [
+      nodejs
+      pebble.pebble-qemu
+      pebble.pebble-tool
+    ] ++ (lib.optionals (!isAppleSilicon) [
+      pebble.arm-embedded-toolchain
+    ]) ++ nativeBuildInputs;
 
     PEBBLE_PHONE = devServerIP;
     PEBBLE_EMULATOR = emulatorTarget;
     PEBBLE_CLOUDPEBBLE = if cloudPebble then "1" else null;
 
-    CFLAGS = "-Wno-error=builtin-macro-redefined -Wno-error=builtin-declaration-mismatch -include sys/types.h " + CFLAGS;
+    CFLAGS = "-Wno-error=builtin-macro-redefined -Wno-error=builtin-declaration-mismatch -include sys/types.h " + (
+      lib.optionalString isAppleSilicon "-Wno-error "
+    ) + CFLAGS;
 
     nophase = ''
       echo This derivation is a Pebble development shell, and not meant to be built.

@@ -10,15 +10,23 @@
   outputs = { self, flake-utils, nixpkgs }:
     flake-utils.lib.eachSystem [ "i686-linux" "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ]
     (system:
-      let pkgs = import nixpkgs {
-        inherit system;
+      let
         config = {
           permittedInsecurePackages = [ "python-2.7.18.8" "python-2.7.18.8-env" ];
         };
-      };
+        pkgs = import nixpkgs {
+          inherit system config;
+        };
+        pebbleCrossPkgs = import nixpkgs {
+          inherit system config;
+          crossSystem = {
+            config = "arm-none-eabi";
+            libc = "newlib-nano";
+          };
+        };
       in rec {
         pebbleEnv = import ./buildTools/pebbleEnv.nix {
-          inherit nixpkgs system;
+          inherit pebbleCrossPkgs pkgs system;
           pebble = self.packages.${system};
         };
 
