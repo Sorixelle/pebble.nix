@@ -5,11 +5,17 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     flake-utils.url = "github:numtide/flake-utils";
+
+    commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
     {
       self,
+      commit-hooks,
       flake-utils,
       nixpkgs,
     }:
@@ -48,7 +54,14 @@
         };
 
         packages = {
-          inherit (pkgs) arm-embedded-toolchain boost153 pebble-qemu pebble-tool pypkjs pyv8;
+          inherit (pkgs)
+            arm-embedded-toolchain
+            boost153
+            pebble-qemu
+            pebble-tool
+            pypkjs
+            pyv8
+            ;
         };
 
         devShell = pkgs.mkShell {
@@ -57,9 +70,20 @@
             nil
             nixfmt-rfc-style
           ];
+
+          inherit (self.checks.${system}.pre-commit) shellHook;
+        };
+
+        checks.pre-commit = commit-hooks.lib.${system}.run {
+          src = ./.;
+          hooks = {
+            nixfmt-rfc-style.enable = true;
+            nil.enable = true;
+          };
         };
       }
-    ) // {
+    )
+    // {
       overlays.default = final: prev: {
         arm-embedded-toolchain = final.callPackage ./derivations/arm-embedded-toolchain { };
         boost153 = final.callPackage ./derivations/boost153 { };
