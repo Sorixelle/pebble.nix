@@ -87,7 +87,7 @@
       overlays.default = final: prev: {
         arm-embedded-toolchain = final.callPackage ./derivations/arm-embedded-toolchain { };
         boost153 = final.callPackage ./derivations/boost153 { };
-        pebble-qemu = final.callPackage ./derivations/pebble-qemu { };
+        pebble-qemu = final.callPackage ./derivations/pebble-qemu.nix { };
         pebble-tool = final.callPackage ./derivations/pebble-tool { };
         pypkjs = final.pebble-tool.passthru.pythonLibs.pypkjs;
         pyv8 = final.callPackage ./derivations/pyv8 { };
