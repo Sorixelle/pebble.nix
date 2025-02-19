@@ -33,7 +33,7 @@ with the following content in the root of your project:
 
 ```nix
 (import
-  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar.gz)
+  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/main.tar.gz)
 ).pebbleEnv { }
 ```
 
@@ -49,7 +49,7 @@ your project:
 
 ```nix
 (import
-  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/master.tar.gz)
+  (builtins.fetchTarball https://github.com/Sorixelle/pebble.nix/archive/main.tar.gz)
 ).buildPebbleApp {
   name = "App Name";
   src = ./.;
@@ -123,6 +123,7 @@ Development shells can be configured by specifying the following arguments to
 - `cloudPebble`: Whether to connect via a CloudPebble connection. Requires
   logging into Rebble via `pebble login`.
 - `nativeBuildInputs`: Any extra tools to use during development.
+- `CFLAGS`: Extra flags to pass to the compiler during app builds.
 
 ### App Store Builds
 
