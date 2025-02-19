@@ -37,7 +37,7 @@ index 38a01df18..f2894057c 100755
  # Restore all variables that have been saved in current stack level
  restoreenv () {
      set +u
-@@ -329,8 +347,8 @@ BUGURL=""
+@@ -329,10 +348,10 @@ BUGURL=""
  # on Ubuntu and Mac OS X.
  uname_string=`uname | sed 'y/LINUXDARWIN/linuxdarwin/'`
  if [ "x$uname_string" == "xlinux" ] ; then
@@ -46,8 +46,29 @@ index 38a01df18..f2894057c 100755
 +    BUILD=x86_64-linux-gnu
 +    HOST_NATIVE=x86_64-linux-gnu
      READLINK=readlink
-     JOBS=`grep ^processor /proc/cpuinfo|wc -l`
+-    JOBS=`grep ^processor /proc/cpuinfo|wc -l`
++    JOBS=$NIX_BUILD_CORES
      GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-Bstatic,-lstdc++,-Bdynamic -lm"
+     TAR=tar
+     MD5="md5sum -b"
+@@ -340,13 +359,11 @@ if [ "x$uname_string" == "xlinux" ] ; then
+ elif [ "x$uname_string" == "xdarwin" ] ; then
+     BUILD=x86_64-apple-darwin10
+     HOST_NATIVE=x86_64-apple-darwin10
+-    READLINK=greadlink
+-# Disable parallel build for mac as we will randomly run into "Permission denied" issue.
+-#    JOBS=`sysctl -n hw.ncpu`
+-    JOBS=1
++    READLINK=readlink
++    JOBS=$NIX_BUILD_CORES
+     GCC_CONFIG_OPTS_LCPP="--with-host-libstdcxx=-static-libgcc -Wl,-lstdc++ -lm"
+-    TAR=gnutar
+-    MD5="md5 -r"
++    TAR=tar
++    MD5="md5sum -b"
+     PACKAGE_NAME_SUFFIX=mac
+ else
+     error "Unsupported build system : $uname_string"
 diff --git a/build-toolchain.sh b/build-toolchain.sh
 index 52e7062c9..9153bccf1 100755
 --- a/build-toolchain.sh

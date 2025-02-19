@@ -37,21 +37,15 @@ diff --git a/src/atomicops.h b/src/atomicops.h
 index d7d4df6763f..64c3e2e0f68 100644
 --- a/v8-source/src/atomicops.h
 +++ b/v8-source/src/atomicops.h
-@@ -58,14 +58,8 @@ typedef int32_t Atomic32;
+@@ -58,7 +58,7 @@ typedef int32_t Atomic32;
  #ifdef V8_HOST_ARCH_64_BIT
  // We need to be able to go between Atomic64 and AtomicWord implicitly.  This
  // means Atomic64 and AtomicWord should be the same type on 64-bit.
 -#if defined(__ILP32__) || defined(__APPLE__)
--// MacOS is an exception to the implicit conversion rule above,
--// because it uses long for intptr_t.
--typedef int64_t Atomic64;
--#else
- typedef intptr_t Atomic64;
- #endif
--#endif
- 
- // Use AtomicWord for a machine-sized pointer.  It will use the Atomic32 or
- // Atomic64 routines below, depending on your architecture.
++#if defined(V8_HOST_ARCH_X64) && defined(__APPLE__)
+ // MacOS is an exception to the implicit conversion rule above,
+ // because it uses long for intptr_t.
+ typedef int64_t Atomic64;
 diff --git a/src/AST.h b/src/AST.h
 index 84641df..5e1c86c 100644
 --- a/src/AST.h

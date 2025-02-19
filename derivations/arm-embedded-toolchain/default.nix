@@ -1,5 +1,6 @@
 {
-  stdenv,
+  gccStdenv,
+  lib,
   fetchurl,
 
   autoconf,
@@ -7,13 +8,14 @@
   bison,
   flex,
   libtool,
+  libiconv,
   m4,
   ncurses,
   perl,
   texinfo,
 }:
 
-stdenv.mkDerivation rec {
+gccStdenv.mkDerivation rec {
   pname = "arm-embedded-toolchain";
   version = "4.7";
 
@@ -34,9 +36,13 @@ stdenv.mkDerivation rec {
     texinfo
   ];
 
-  buildInputs = [
-    ncurses
-  ];
+  buildInputs =
+    [
+      ncurses
+    ]
+    ++ lib.optionals gccStdenv.isDarwin [
+      libiconv
+    ];
 
   postUnpack = ''
     # Extract all tarballs in the source directory
