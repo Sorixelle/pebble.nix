@@ -99,7 +99,7 @@ gccStdenv.mkDerivation rec {
       zlib
     ];
     mainProgram = "arm-none-eabi-gcc";
-    platforms = platforms.linux;
-    badPlatforms = platforms.darwin;
+    platforms = platforms.linux ++ platforms.darwin;
+    badPlatforms = [ "aarch64-darwin" ];
   };
 }
