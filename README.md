@@ -1,6 +1,6 @@
 # pebble.nix
 
-![CI status badge](https://github.com/Sorixelle/pebble.nix/actions/workflows/buildAndCache.yml/badge.svg)
+[![CI status badge](https://github.com/Sorixelle/pebble.nix/actions/workflows/buildAndCache.yml/badge.svg)](https://github.com/Sorixelle/pebble.nix/actions/workflows/buildAndCache.yml?query=branch%3Amain)
 
 A collection of tools for setting up Pebble app development environments, and building Pebble apps/watchfaces, using
 [Nix](https://nixos.org/).
