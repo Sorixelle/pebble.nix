@@ -143,7 +143,10 @@ toPythonModule (
 
     dontUsePythonRecompileBytecode = true;
 
-    meta = {
+    meta = with lib; {
+      homepage = "https://github.com/pebble/pyv8";
+      description = "Pebble fork of PyV8 - A Python wrapper for the V8 Javascript engine";
+      license = licenses.asl20;
       platforms = python2.meta.platforms;
       isBuildPythonPackage = python2.meta.platforms;
     };

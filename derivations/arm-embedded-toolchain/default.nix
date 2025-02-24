@@ -83,4 +83,23 @@ gccStdenv.mkDerivation rec {
     mkdir -p $out
     cp -a install-native/* $out/
   '';
+
+  meta = with lib; {
+    homepage = "https://developer.arm.com/Tools%20and%20Software/GNU%20Toolchain";
+    description = "GNU compiler toolchain for Arm based CPUs";
+    license = with licenses; [
+      bsd2
+      bsd3
+      gpl2Plus
+      gpl3Plus
+      lgpl2Plus
+      lgpl21Plus
+      lgpl3Plus
+      mit
+      zlib
+    ];
+    mainProgram = "arm-none-eabi-gcc";
+    platforms = platforms.linux;
+    badPlatforms = platforms.darwin;
+  };
 }

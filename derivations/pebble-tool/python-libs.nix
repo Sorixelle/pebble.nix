@@ -225,6 +225,13 @@ rec {
       wrapProgram $out/bin/pypkjs \
         --prefix LD_LIBRARY_PATH : ${lib.makeLibraryPath [ stdenv.cc.cc.lib ]}
     '';
+
+    meta = with lib; {
+      homepage = "https://github.com/pebble/pypkjs";
+      description = "Python implementation of PebbleKit JS";
+      license = licenses.mit;
+      platforms = platforms.linux ++ platforms.darwin;
+    };
   };
 
   pypng = buildPythonPackage rec {

@@ -77,7 +77,8 @@ python2Packages.buildPythonPackage {
   meta = with lib; {
     homepage = "https://developer.rebble.io/developer.pebble.com/index.html";
     description = "Tool for interacting with the Pebble SDK";
-
     license = licenses.mit;
+    mainProgram = "pebble";
+    platforms = platforms.linux ++ platforms.darwin;
   };
 }
