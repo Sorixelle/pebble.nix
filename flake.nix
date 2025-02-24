@@ -6,6 +6,8 @@
 
     flake-utils.url = "github:numtide/flake-utils";
 
+    flake-compat.url = "github:edolstra/flake-compat";
+
     commit-hooks = {
       url = "github:cachix/git-hooks.nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -18,6 +20,7 @@
       commit-hooks,
       flake-utils,
       nixpkgs,
+      ...
     }:
     flake-utils.lib.eachSystem [ "x86_64-linux" "x86_64-darwin" "aarch64-darwin" ] (
       system:

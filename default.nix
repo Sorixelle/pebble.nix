@@ -1,10 +1,13 @@
 let
   system = builtins.currentSystem;
 
+  flakeLock = builtins.fromJSON (builtins.readFile ./flake.lock);
   flake =
     (import (fetchTarball {
-      url = "https://github.com/edolstra/flake-compat/archive/c75e76f80c57784a6734356315b306140646ee84.tar.gz";
-      sha256 = "071aal00zp2m9knnhddgr2wqzlx6i6qa1263lv1y7bdn2w20h10h";
+      url =
+        flakeLock.nodes.flake-compat.locked.url
+          or "https://github.com/edolstra/flake-compat/archive/${flakeLock.nodes.flake-compat.locked.rev}.tar.gz";
+      sha256 = flakeLock.nodes.flake-compat.locked.narHash;
     }) { src = ./.; }).defaultNix.outputs;
 in
 {
