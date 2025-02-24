@@ -5,6 +5,7 @@
   fetchFromGitHub,
   makeWrapper,
   freetype,
+  nodejs,
   python2Packages,
   pyv8,
   zlib,
@@ -42,6 +43,8 @@ python2Packages.buildPythonPackage {
 
   nativeBuildInputs = [ makeWrapper ];
 
+  buildInputs = [ nodejs ];
+
   propagatedBuildInputs =
     builtins.attrValues pythonLibs
     ++ (with python2Packages; [
@@ -65,6 +68,7 @@ python2Packages.buildPythonPackage {
 
   postFixup = ''
     wrapProgram $out/bin/pebble \
+      --prefix PATH : ${lib.makeBinPath [ nodejs ]} \
       --prefix LD_LIBRARY_PATH : ${rpath} \
       --prefix DYLD_LIBRARY_PATH : ${rpath} \
       --set PHONESIM_PATH ${pythonLibs.pypkjs}/bin/pypkjs
