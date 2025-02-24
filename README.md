@@ -19,6 +19,10 @@ There's very little difference between the two - Lix is [a fork of Nix](https://
 stability and improving the developer experience, while still remaining compatible with upstream Nix (which is what the
 Determinate Nix Installer sets up). pebble.nix fully supports both implementations, so take your pick!
 
+You might wonder - why not use the official Nix installer? There's a few rough edges in it that require manual fixup
+after installation to workaround (doesn't allow using Nix flakes out-of-the-box, lack of Fish shell support, etc.). The
+installers listed above don't have these problems, so it's easier to use them instead.
+
 ### Step 2: Install Cachix (optional, but recommended)
 
 The job of pebble.nix is to give Nix instructions on how to build and compile all the pieces needed to get a full Pebble
