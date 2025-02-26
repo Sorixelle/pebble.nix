@@ -80,25 +80,17 @@ packages you create, plus a bunch of other things that aren't important to us. W
 has everything we'll want when writing a Pebble app. pebble.nix has a function called `pebbleEnv` that has all of that
 stuff included - we just need to create a flake that tells Nix to use `pebbleEnv` for our project's devshell.
 
-Paste the following into a file at the root of your project, called `flake.nix`:
-```nix
-{
-  inputs = {
-    pebble.url = "github:Sorixelle/pebble.nix";
-    flake-utils.url = "github:numtide/flake-utils";
-  };
+pebble.nix provides a template for setting up a flake with a development shell in an existing project. To use that
+template, run:
 
-  outputs =
-    { pebble, flake-utils, ... }:
-    flake-utils.lib.eachDefaultSystem (system: {
-      devShell = pebble.pebbleEnv.${system} { };
-    });
-}
+```shell
+nix flake init -t github:Sorixelle/pebble.nix
 ```
 
-Once that file is created, run `nix develop` in the project. You'll be dropped into a new shell session, that has
-everything you need to build Pebble apps - the `pebble` tool, the emulator, and an ARM compiler! You can use the
-`pebble` tool exactly like you would in a normal install while you're in here.
+You should now have a `flake.nix` file in your project with a development shell ready to use. To ender the shell, run
+`nix develop` in the project. You'll be dropped into a new shell session, that has everything you need to build Pebble
+apps - the `pebble` tool, the emulator, and an ARM compiler! You can use the `pebble` tool exactly like you would in a
+normal install while you're in here.
 
 You'll notice a `flake.lock` file was created after running `nix develop`. That file makes sure none of the flake's
 inputs (such as pebble.nix) update out of nowhere and potentially break your setup, similarly to things like npm's
