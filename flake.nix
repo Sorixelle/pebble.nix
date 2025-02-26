@@ -95,5 +95,20 @@
         pypkjs = final.pebble-tool.passthru.pythonLibs.pypkjs;
         pyv8 = final.callPackage ./derivations/pyv8 { };
       };
+
+      templates = rec {
+        basic = {
+          path = ./templates/basic;
+          description = "A simple pebble.nix project, with a development shell for building Pebble apps";
+          welcomeText = ''
+            # Next Steps
+            - Check out the Pebble Developer docs: https://developer.rebble.io
+            - See what else pebble.nix can do: https://github.com/Sorixelle/pebble.nix
+            - Join us in the Rebble Discord server, and get help writing Pebble apps in #app-dev: https://discordapp.com/invite/aRUAYFN
+          '';
+        };
+
+        default = basic;
+      };
     };
 }
