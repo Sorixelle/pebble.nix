@@ -103,7 +103,7 @@
           welcomeText = ''
             # Next Steps
             - Check out the Pebble Developer docs: https://developer.rebble.io
-            - See what else pebble.nix can do: https://github.com/Sorixelle/pebble.nix
+            - See what else pebble.nix can do: https://github.com/pebble-dev/pebble.nix
             - Join us in the Rebble Discord server, and get help writing Pebble apps in #app-dev: https://discordapp.com/invite/aRUAYFN
           '';
         };

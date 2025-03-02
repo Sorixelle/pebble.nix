@@ -1,6 +1,6 @@
 # pebble.nix
 
-[![CI status badge](https://github.com/Sorixelle/pebble.nix/actions/workflows/buildAndCache.yml/badge.svg)](https://github.com/Sorixelle/pebble.nix/actions/workflows/buildAndCache.yml?query=branch%3Amain)
+[![CI status badge](https://github.com/pebble-dev/pebble.nix/actions/workflows/buildAndCache.yml/badge.svg)](https://github.com/pebble-dev/pebble.nix/actions/workflows/buildAndCache.yml?query=branch%3Amain)
 
 A collection of tools for setting up Pebble app development environments, and building Pebble apps/watchfaces, using
 [Nix](https://nixos.org/).
@@ -53,7 +53,7 @@ Nix derivation defined in a GitHub repo without installing it - we can use it to
 you want to keep your project in, run the following command:
 
 ```shell
-nix run github:Sorixelle/pebble.nix#pebble-tool -- new-project <project name>
+nix run github:pebble-dev/pebble.nix#pebble-tool -- new-project <project name>
 ```
 
 You now have a new Pebble app project, in a folder with the same name as the project name! The `nix run` command
@@ -61,7 +61,7 @@ effectively acts as a substitute for the `pebble` command, where everything afte
 `pebble`. For example, if you wanted to list all the available Pebble SDK versions, you could run:
 
 ```shell
-nix run github:Sorixelle/pebble.nix#pebble-tool -- sdk list
+nix run github:pebble-dev/pebble.nix#pebble-tool -- sdk list
 ```
 
 Having to type out that full command every time is a bit annoying, though. Also, trying to build the app doesn't work,
@@ -84,7 +84,7 @@ pebble.nix provides a template for setting up a flake with a development shell i
 template, run:
 
 ```shell
-nix flake init -t github:Sorixelle/pebble.nix
+nix flake init -t github:pebble-dev/pebble.nix
 ```
 
 You should now have a `flake.nix` file in your project with a development shell ready to use. To ender the shell, run
