@@ -11,6 +11,7 @@
   cloudPebble ? false,
   nativeBuildInputs ? [ ],
   CFLAGS ? "",
+  ...
 }@attrs:
 
 let
@@ -31,31 +32,33 @@ shellPkgs.callPackage (
     lib,
     nodejs,
   }:
-  gccStdenv.mkDerivation {
-    name = "pebble-env";
-    phases = [ "nophase" ];
+  gccStdenv.mkDerivation (
+    {
+      name = "pebble-env";
+      phases = [ "nophase" ];
 
-    nativeBuildInputs =
-      [
-        nodejs
-        pebble.pebble-qemu
-        pebble.pebble-tool
-      ]
-      ++ lib.optionals (!isAppleSilicon) [
-        pebble.arm-embedded-toolchain
-      ]
-      ++ nativeBuildInputs;
+      nativeBuildInputs =
+        [
+          nodejs
+          pebble.pebble-qemu
+          pebble.pebble-tool
+        ]
+        ++ lib.optionals (!isAppleSilicon) [
+          pebble.arm-embedded-toolchain
+        ]
+        ++ nativeBuildInputs;
 
-    PEBBLE_PHONE = devServerIP;
-    PEBBLE_EMULATOR = emulatorTarget;
-    PEBBLE_CLOUDPEBBLE = if cloudPebble then "1" else null;
+      PEBBLE_PHONE = devServerIP;
+      PEBBLE_EMULATOR = emulatorTarget;
+      PEBBLE_CLOUDPEBBLE = if cloudPebble then "1" else null;
 
-    CFLAGS = (lib.optionalString isAppleSilicon "-Wno-error -include sys/types.h ") + CFLAGS;
+      CFLAGS = (lib.optionalString isAppleSilicon "-Wno-error -include sys/types.h ") + CFLAGS;
 
-    nophase = ''
-      echo This derivation is a Pebble development shell, and not meant to be built.
-      exit 1
-    '';
-  }
-  // rest
+      nophase = ''
+        echo This derivation is a Pebble development shell, and not meant to be built.
+        exit 1
+      '';
+    }
+    // rest
+  )
 ) { }
