@@ -60,6 +60,7 @@
           inherit (pkgs)
             arm-embedded-toolchain
             boost153
+            pdc-sequencer
             pebble-qemu
             pebble-tool
             pypkjs
@@ -90,6 +91,7 @@
       overlays.default = final: prev: {
         arm-embedded-toolchain = final.callPackage ./derivations/arm-embedded-toolchain { };
         boost153 = final.callPackage ./derivations/boost153 { };
+        pdc-sequencer = final.callPackage ./derivations/pdc-sequencer.nix { };
         pebble-qemu = final.callPackage ./derivations/pebble-qemu.nix { };
         pebble-tool = final.callPackage ./derivations/pebble-tool { };
         pypkjs = final.pebble-tool.passthru.pythonLibs.pypkjs;
