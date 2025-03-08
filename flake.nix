@@ -61,6 +61,7 @@
             arm-embedded-toolchain
             boost153
             pdc-sequencer
+            pdc_tool
             pebble-qemu
             pebble-tool
             pypkjs
@@ -92,6 +93,7 @@
         arm-embedded-toolchain = final.callPackage ./derivations/arm-embedded-toolchain { };
         boost153 = final.callPackage ./derivations/boost153 { };
         pdc-sequencer = final.callPackage ./derivations/pdc-sequencer.nix { };
+        pdc_tool = final.callPackage ./derivations/pdc_tool.nix { };
         pebble-qemu = final.callPackage ./derivations/pebble-qemu.nix { };
         pebble-tool = final.callPackage ./derivations/pebble-tool { };
         pypkjs = final.pebble-tool.passthru.pythonLibs.pypkjs;
