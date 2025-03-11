@@ -5,20 +5,20 @@
 }:
 
 let
-  version = "0.3.0";
+  version = "0.3.1";
 
   binaryArchive = {
     x86_64-linux = fetchzip {
       url = "https://github.com/HBehrens/pdc_tool/releases/download/v${version}/pdc_tool_linux_x86_64-unknown-linux-musl.zip";
-      hash = "sha256-TGDV2/dwWpOu3xK9Lc5K15EiKrfL0pJKQR1VIlCqpmo=";
+      hash = "sha256-J9P+EJKSw6oqptEPQN/xWEXvFd6seX3UQKLMw9Eac4U=";
     };
     x86_64-darwin = fetchzip {
       url = "https://github.com/HBehrens/pdc_tool/releases/download/v${version}/pdc_tool_macos_x86_64-apple-darwin.zip";
-      hash = "sha256-c/d6dYNHL0kDWqBPYvOkkg2XZAlSe8mVRLGM1ng/UkE=";
+      hash = "sha256-E4PvbYVa8ntcR9aQjtD2whNgYowr1NWOQJu88AiGeyk=";
     };
     aarch64-darwin = fetchzip {
       url = "https://github.com/HBehrens/pdc_tool/releases/download/v${version}/pdc_tool_macos_aarch64-apple-darwin.zip";
-      hash = "sha256-4MJJkb/kvmPlzdBs4KrdpcaMmUkD8Qyb03TgqC7OZ1Y=";
+      hash = "sha256-2DEZ9MJgfWCtWQLik1HqrdklDRh+YerUgjYnwGSNq68=";
     };
   };
 in
@@ -44,6 +44,6 @@ stdenv.mkDerivation {
       "x86_64-darwin"
       "x86_64-linux"
     ];
-    sourceProvenance = lib.sourceTypes.binaryNativeCode;
+    sourceProvenance = [ lib.sourceTypes.binaryNativeCode ];
   };
 }
